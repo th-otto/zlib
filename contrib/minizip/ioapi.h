@@ -27,13 +27,13 @@
   // But might need better if/def to select just the platforms that needs them.
 
         #ifndef __USE_FILE_OFFSET64
-                #define __USE_FILE_OFFSET64
+                #define __USE_FILE_OFFSET64 1
         #endif
         #ifndef __USE_LARGEFILE64
-                #define __USE_LARGEFILE64
+                #define __USE_LARGEFILE64 1
         #endif
         #ifndef _LARGEFILE64_SOURCE
-                #define _LARGEFILE64_SOURCE
+                #define _LARGEFILE64_SOURCE 1
         #endif
         #ifndef _FILE_OFFSET_BIT
                 #define _FILE_OFFSET_BIT 64

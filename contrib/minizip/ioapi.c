@@ -10,11 +10,12 @@
 
 */
 
+#define ZLIB_COMPILATION
 #if defined(_WIN32) && (!(defined(_CRT_SECURE_NO_WARNINGS)))
         #define _CRT_SECURE_NO_WARNINGS
 #endif
 
-#if defined(__APPLE__) || defined(IOAPI_NO_64) || defined(__CYGWIN__)
+#if defined(__APPLE__) || defined(IOAPI_NO_64) || defined(__CYGWIN__) || defined(__MINT__)
 // In darwin and perhaps other BSD variants off_t is a 64 bit value, hence no need for specific 64 bit functions
 // Ditto cygwin.
 #define FOPEN_FUNC(filename, mode) fopen(filename, mode)

@@ -99,8 +99,8 @@ debug=0
 old_cc="$CC"
 old_cflags="$CFLAGS"
 old_ldflags="$LDFLAGS"
-OBJC='$(OBJZ) $(OBJG)'
-PIC_OBJC='$(PIC_OBJZ) $(PIC_OBJG)'
+OBJC='$(OBJZ) $(OBJG) $(OBJM)'
+PIC_OBJC='$(PIC_OBJZ) $(PIC_OBJG) $(PIC_OBJM)'
 
 # leave this script, optionally in a bad way
 leave()

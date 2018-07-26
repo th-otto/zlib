@@ -5,10 +5,11 @@
 */
 
 /* Code */
+#define ZLIB_COMPILATION
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "zlib.h"
+#include "zutil.h"
 #include "unzip.h"
 
 #define READ_8(adr)  ((unsigned char)*(adr))
