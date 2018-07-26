@@ -38,6 +38,8 @@ fi
 
 # destination name for static library
 STATICLIB=libz.a
+IMPORTLIB=
+LDFLAGS="${LDFLAGS}"
 
 # extract zlib version numbers from zlib.h
 VER=`sed -n -e '/VERSION "/s/.*"\(.*\)".*/\1/p' < ${SRCDIR}zlib.h`
@@ -59,6 +61,12 @@ if "${CROSS_PREFIX}ranlib" --version >/dev/null 2>/dev/null || test $? -lt 126; 
     test -n "${CROSS_PREFIX}" && echo Using ${RANLIB} | tee -a configure.log
 else
     RANLIB=${RANLIB-"ranlib"}
+fi
+if "${CROSS_PREFIX}windres" --version >/dev/null 2>/dev/null || test $? -lt 126; then
+    WINDRES=${WINDRES-"${CROSS_PREFIX}windres"}
+    test -n "${CROSS_PREFIX}" && echo Using ${WINDRES} | tee -a configure.log
+else
+    WINDRES=${WINDRES-"windres"}
 fi
 if "${CROSS_PREFIX}nm" --version >/dev/null 2>/dev/null || test $? -lt 126; then
     NM=${NM-"${CROSS_PREFIX}nm"}
@@ -89,6 +97,7 @@ warn=0
 debug=0
 old_cc="$CC"
 old_cflags="$CFLAGS"
+old_ldflags="$LDFLAGS"
 OBJC='$(OBJZ) $(OBJG)'
 PIC_OBJC='$(PIC_OBJZ) $(PIC_OBJG)'
 
@@ -133,6 +142,7 @@ case "$1" in
     -6* | --64) build64=1; shift ;;
     -a*=* | --archs=*) ARCHS=`echo $1 | sed 's/.*=//'`; shift ;;
     --sysconfdir=*) echo "ignored option: --sysconfdir" | tee -a configure.log; shift ;;
+    --bindir=*) bindir=`echo $1 | sed 's/.*=//'`; shift ;;
     --localstatedir=*) echo "ignored option: --localstatedir" | tee -a configure.log; shift ;;
     -c* | --const) zconst=1; shift ;;
     -w* | --warn) warn=1; shift ;;
@@ -143,6 +153,8 @@ case "$1" in
       leave 1;;
     esac
 done
+
+bindir=${bindir-'${exec_prefix}/bin'}
 
 # temporary file name
 test=ztest$$
@@ -213,14 +225,36 @@ if test "$gcc" -eq 1 && ($cc -c $test.c) >> configure.log 2>&1; then
         LDSHARED=${LDSHARED-"$cc -shared -Wl,-soname,libz.so.1,--version-script,${SRCDIR}zlib.map"}
         LDCONFIG="ldconfig -m" ;;
   CYGWIN* | Cygwin* | cygwin* | OS/2*)
+  	CFLAGS="${CFLAGS} -D_LARGEFILE_SOURCE=1 -D_FILE_OFFSET_BITS=64"
+  	SFLAGS="${CFLAGS}"
+	LDFLAGS="-L. -lz ${old_ldflags}"
+	shared_ext=".dll"
+	SHAREDLIB='cygz.dll'
+	IMPORTLIB='libz.dll.a'
+	LDSHARED=${LDSHARED-"$cc -shared -Wl,-export-all -Wl,--enable-auto-image-base -Wl,--out-implib=${IMPORTLIB}"}
+	LDSHAREDLIBC=''
+        EXE='.exe' ;;
+  MSYS* | msys*)
+  	SFLAGS="${CFLAGS}"
+	LDFLAGS="-L. -lz ${old_ldflags}"
+	shared_ext=".dll"
+	SHAREDLIB='msys-z.dll'
+	IMPORTLIB='libz.dll.a'
+	LDSHARED=${LDSHARED-"$cc -shared -Wl,-export-all -Wl,--enable-auto-image-base -Wl,--out-implib=${IMPORTLIB}"}
+        LDFLAGS=
+	LDSHAREDLIBC=''
         EXE='.exe' ;;
   MINGW* | mingw*)
-# temporary bypass
-        rm -f $test.[co] $test $test$shared_ext
-        echo "Please use win32/Makefile.gcc instead." | tee -a configure.log
-        leave 1
-        LDSHARED=${LDSHARED-"$cc -shared"}
-        LDSHAREDLIBC=""
+  	CFLAGS="${CFLAGS} -mms-bitfields"
+  	SFLAGS="${CFLAGS}"
+	LDFLAGS="-L. -lz ${old_ldflags}"
+	shared_ext=".dll"
+	#SHAREDLIB='libz-1.dll'
+	SHAREDLIB='zlib1.dll'
+	IMPORTLIB='libz.dll.a'
+	RC_OBJS=zlibrc.o
+	LDSHARED=${LDSHARED-"$cc -shared -Wl,-export-all -Wl,--enable-auto-image-base -Wl,--out-implib=${IMPORTLIB}"}
+	LDSHAREDLIBC=''
         EXE='.exe' ;;
   QNX*)  # This is for QNX6. I suppose that the QNX rule below is for QNX2,QNX4
          # (alain.bonnefoy@icbt.com)
@@ -344,13 +378,6 @@ else
   esac
 fi
 
-# destination names for shared library if not defined above
-SHAREDLIB=${SHAREDLIB-"libz$shared_ext"}
-SHAREDLIBV=${SHAREDLIBV-"libz$shared_ext.$VER"}
-SHAREDLIBM=${SHAREDLIBM-"libz$shared_ext.$VER1"}
-
-echo >> configure.log
-
 # define functions for testing compiler and library characteristics and logging the results
 
 cat > $test.c <<EOF
@@ -375,6 +402,35 @@ else
     return $ret
   }
 fi
+
+case "$uname" in
+  *CYGWIN* | *Cygwin* | *cygwin* )
+    # On cygwin, we always build both shared and static libs
+    ALL="static shared"
+    SHAREDLIBPOST='/bin/true'
+    SHAREDTARGET=${SHAREDLIB}
+    TEST="all teststatic testshared"
+    ;;
+  *MINGW* | *Mingw* | *mingw* )
+    # On Mingw, we always build both shared and static libs
+    ALL="static shared"
+    SHAREDLIBPOST='/bin/true'
+    SHAREDTARGET=${SHAREDLIB}
+    TEST="all teststatic testshared"
+    ;;
+  *)
+
+# destination names for shared library if not defined above
+SHAREDLIB=${SHAREDLIB-"libz$shared_ext"}
+SHAREDLIBV=${SHAREDLIBV-"libz$shared_ext.$VER"}
+SHAREDLIBM=${SHAREDLIBM-"libz$shared_ext.$VER1"}
+SHAREDLIBPOST='(rm -f $(SHAREDLIB) $(SHAREDLIBM); ln -s $@ $(SHAREDLIB) ; ln -s $@ $(SHAREDLIBM) )'
+SHAREDTARGET='$(SHAREDLIBV)'
+
+echo >> configure.log
+
+	;;
+esac
 
 tryboth()
 {
@@ -822,6 +878,9 @@ EOF
   fi
 fi
 
+# clean up files produced by running the compiler and linker
+rm -f $test.[co] $test $test.exe $test$shared_ext $test.gcno
+
 # show the results in the log
 echo >> configure.log
 echo ALL = $ALL >> configure.log
@@ -838,14 +897,18 @@ echo LDSHAREDLIBC = $LDSHAREDLIBC >> configure.log
 echo OBJC = $OBJC >> configure.log
 echo PIC_OBJC = $PIC_OBJC >> configure.log
 echo RANLIB = $RANLIB >> configure.log
+echo WINDRES = $WINDRES >> configure.log
 echo SFLAGS = $SFLAGS >> configure.log
 echo SHAREDLIB = $SHAREDLIB >> configure.log
 echo SHAREDLIBM = $SHAREDLIBM >> configure.log
 echo SHAREDLIBV = $SHAREDLIBV >> configure.log
 echo STATICLIB = $STATICLIB >> configure.log
+echo IMPORTLIB = $IMPORTLIB >> configure.log
+echo SHAREDLIBPOST = $SHAREDLIBPOST >> configure.log
+echo SHAREDTARGET = $SHAREDTARGET >> configure.log
 echo TEST = $TEST >> configure.log
 echo VER = $VER >> configure.log
-echo Z_U4 = $Z_U4 >> configure.log
+echo bindir = $bindir >> configure.log
 echo SRCDIR = $SRCDIR >> configure.log
 echo exec_prefix = $exec_prefix >> configure.log
 echo includedir = $includedir >> configure.log
@@ -858,18 +921,22 @@ echo uname = $uname >> configure.log
 # udpate Makefile with the configure results
 sed < ${SRCDIR}Makefile.in "
 /^CC *=/s#=.*#=$CC#
-/^CFLAGS *=/s#=.*#=$CFLAGS#
-/^SFLAGS *=/s#=.*#=$SFLAGS#
+/^CFLAGS *=/s#=.*#=$CFLAGS"' $(ASMV) $(ZINCOUT)'"#
+/^SFLAGS *=/s#=.*#=$SFLAGS"' $(ASMV) $(ZINCOUT)'"#
 /^LDFLAGS *=/s#=.*#=$LDFLAGS#
 /^LDSHARED *=/s#=.*#=$LDSHARED#
 /^CPP *=/s#=.*#=$CPP#
 /^STATICLIB *=/s#=.*#=$STATICLIB#
+/^IMPORTLIB *=/s#=.*#=$IMPORTLIB#
 /^SHAREDLIB *=/s#=.*#=$SHAREDLIB#
 /^SHAREDLIBV *=/s#=.*#=$SHAREDLIBV#
 /^SHAREDLIBM *=/s#=.*#=$SHAREDLIBM#
+/^SHAREDLIBPOST *=/s#=.*#=$SHAREDLIBPOST#
+/^SHAREDTARGET *=/s#=.*#=$SHAREDTARGET#
 /^AR *=/s#=.*#=$AR#
 /^ARFLAGS *=/s#=.*#=$ARFLAGS#
 /^RANLIB *=/s#=.*#=$RANLIB#
+/^WINDRES*=/s#=.*#=$WINDRES#
 /^LDCONFIG *=/s#=.*#=$LDCONFIG#
 /^LDSHAREDLIBC *=/s#=.*#=$LDSHAREDLIBC#
 /^EXE *=/s#=.*#=$EXE#
@@ -877,6 +944,7 @@ sed < ${SRCDIR}Makefile.in "
 /^ZINC *=/s#=.*#=$ZINC#
 /^ZINCOUT *=/s#=.*#=$ZINCOUT#
 /^prefix *=/s#=.*#=$prefix#
+/^bindir *=/s#=.*#=$bindir#
 /^exec_prefix *=/s#=.*#=$exec_prefix#
 /^libdir *=/s#=.*#=$libdir#
 /^sharedlibdir *=/s#=.*#=$sharedlibdir#
@@ -884,6 +952,7 @@ sed < ${SRCDIR}Makefile.in "
 /^mandir *=/s#=.*#=$mandir#
 /^OBJC *=/s#=.*#= $OBJC#
 /^PIC_OBJC *=/s#=.*#= $PIC_OBJC#
+/^RC_OBJS *=/s#=.*#= $RC_OBJS#
 /^all: */s#:.*#: $ALL#
 /^test: */s#:.*#: $TEST#
 " > Makefile
@@ -905,6 +974,7 @@ sed < ${SRCDIR}zlib.pc.in "
 /^prefix *=/s#=.*#=$prefix#
 /^exec_prefix *=/s#=.*#=$exec_prefix#
 /^libdir *=/s#=.*#=$libdir#
+/^bindir *=/s#=.*#=$bindir#
 /^sharedlibdir *=/s#=.*#=$sharedlibdir#
 /^includedir *=/s#=.*#=$includedir#
 /^mandir *=/s#=.*#=$mandir#

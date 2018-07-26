@@ -22,7 +22,8 @@ libminizip_la_SOURCES = \
 	zip.c \
 	${iowin32_src}
 
-libminizip_la_LDFLAGS = $(AM_LDFLAGS) -version-info 1:0:0 -lz
+libminizip_la_LDFLAGS = $(AM_LDFLAGS) -version-info 1:0:0 -no-undefined
+libminizip_la_LIBADD = -lz
 
 minizip_includedir = $(includedir)/minizip
 minizip_include_HEADERS = \
