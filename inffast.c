@@ -3,14 +3,17 @@
  * For conditions of distribution and use, see copyright notice in zlib.h
  */
 
+#define ZLIB_COMPILATION
 #include "zutil.h"
 #include "inftrees.h"
 #include "inflate.h"
 #include "inffast.h"
 
-#ifdef ASMINF
-#  pragma message("Assembler code may have bugs -- use at your own risk")
-#else
+#ifndef NO_DUMMY_DECL
+struct internal_state      {int dummy;}; /* for buggy compilers */
+#endif
+
+#ifndef ASMINF
 
 /*
    Decode literal, length, and distance codes and write out the resulting
@@ -268,7 +271,7 @@ unsigned start;         /* inflate()'s starting value for strm->avail_out */
                 goto dodist;
             }
             else {
-                strm->msg = (char *)"invalid distance code";
+                strm->msg = "invalid distance code";
                 state->mode = BAD;
                 break;
             }
@@ -283,7 +286,7 @@ unsigned start;         /* inflate()'s starting value for strm->avail_out */
             break;
         }
         else {
-            strm->msg = (char *)"invalid literal/length code";
+            strm->msg = "invalid literal/length code";
             state->mode = BAD;
             break;
         }

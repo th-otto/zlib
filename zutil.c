@@ -5,6 +5,7 @@
 
 /* @(#) $Id$ */
 
+#define ZLIB_COMPILATION
 #include "zutil.h"
 #ifndef Z_SOLO
 #  include "gzguts.h"

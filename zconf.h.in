@@ -351,7 +351,9 @@
  */
 
 #undef ZLIB_DLL
+#if !defined(ZLIB_COMPILATION) && !defined(ZLIB_STATIC)
 #define ZLIB_DLL 1
+#endif
 
 #undef ZLIB_WINAPI
 
@@ -362,7 +364,7 @@
     */
 #  ifdef ZLIB_DLL
 #    if defined(WIN32) && (!defined(__BORLANDC__) || (__BORLANDC__ >= 0x500))
-#      ifdef ZLIB_INTERNAL
+#      ifdef ZLIB_COMPILATION
 #        define ZEXTERN extern __declspec(dllexport)
 #      else
 #        define ZEXTERN extern __declspec(dllimport)
@@ -393,7 +395,7 @@
 
 #if defined (__BEOS__)
 #  ifdef ZLIB_DLL
-#    ifdef ZLIB_INTERNAL
+#    ifdef ZLIB_COMPILATION
 #      define ZEXPORT   __declspec(dllexport)
 #      define ZEXPORTVA __declspec(dllexport)
 #    else

@@ -21,14 +21,12 @@
   DYNAMIC_CRC_TABLE and MAKECRCH can be #defined to write out crc32.h.
  */
 
-#ifdef MAKECRCH
-#  include <stdio.h>
-#  ifndef DYNAMIC_CRC_TABLE
-#    define DYNAMIC_CRC_TABLE
-#  endif /* !DYNAMIC_CRC_TABLE */
-#endif /* MAKECRCH */
-
+#define ZLIB_COMPILATION
 #include "zutil.h"      /* for STDC and FAR definitions */
+
+#ifndef NO_DUMMY_DECL
+struct internal_state      {int dummy;}; /* for buggy compilers */
+#endif
 
 /* Definitions for doing the crc four data bytes at a time. */
 #if !defined(NOBYFOUR) && defined(Z_U4)
@@ -56,9 +54,6 @@ local uLong crc32_combine_ OF((uLong crc1, uLong crc2, z_off64_t len2));
 local volatile int crc_table_empty = 1;
 local z_crc_t FAR crc_table[TBLS][256];
 local void make_crc_table OF((void));
-#ifdef MAKECRCH
-   local void write_table OF((FILE *, const z_crc_t FAR *));
-#endif /* MAKECRCH */
 /*
   Generate tables for a byte-wise 32-bit CRC calculation on the polynomial:
   x^32+x^26+x^23+x^22+x^16+x^12+x^11+x^10+x^8+x^7+x^5+x^4+x^2+x+1.
@@ -135,45 +130,7 @@ local void make_crc_table()
             ;
     }
 
-#ifdef MAKECRCH
-    /* write out CRC tables to crc32.h */
-    {
-        FILE *out;
-
-        out = fopen("crc32.h", "w");
-        if (out == NULL) return;
-        fprintf(out, "/* crc32.h -- tables for rapid CRC calculation\n");
-        fprintf(out, " * Generated automatically by crc32.c\n */\n\n");
-        fprintf(out, "local const z_crc_t FAR ");
-        fprintf(out, "crc_table[TBLS][256] =\n{\n  {\n");
-        write_table(out, crc_table[0]);
-#  ifdef BYFOUR
-        fprintf(out, "#ifdef BYFOUR\n");
-        for (k = 1; k < 8; k++) {
-            fprintf(out, "  },\n  {\n");
-            write_table(out, crc_table[k]);
-        }
-        fprintf(out, "#endif\n");
-#  endif /* BYFOUR */
-        fprintf(out, "  }\n};\n");
-        fclose(out);
-    }
-#endif /* MAKECRCH */
 }
-
-#ifdef MAKECRCH
-local void write_table(out, table)
-    FILE *out;
-    const z_crc_t FAR *table;
-{
-    int n;
-
-    for (n = 0; n < 256; n++)
-        fprintf(out, "%s0x%08lxUL%s", n % 5 ? "" : "    ",
-                (unsigned long)(table[n]),
-                n == 255 ? "\n" : (n % 5 == 4 ? ",\n" : ", "));
-}
-#endif /* MAKECRCH */
 
 #else /* !DYNAMIC_CRC_TABLE */
 /* ========================================================================
@@ -217,20 +174,23 @@ unsigned long ZEXPORT crc32_z(crc, buf, len)
 
         endian = 1;
         if (*((unsigned char *)(&endian)))
-            return crc32_little(crc, buf, len);
+            crc = crc32_little(crc, buf, len);
         else
-            return crc32_big(crc, buf, len);
-    }
+            crc = crc32_big(crc, buf, len);
+    } else
 #endif /* BYFOUR */
-    crc = crc ^ 0xffffffffUL;
-    while (len >= 8) {
-        DO8;
-        len -= 8;
+	{
+	    crc = crc ^ 0xffffffffUL;
+	    while (len >= 8) {
+	        DO8;
+	        len -= 8;
+	    }
+	    if (len) do {
+	        DO1;
+	    } while (--len);
+	    crc ^= 0xffffffffUL;
     }
-    if (len) do {
-        DO1;
-    } while (--len);
-    return crc ^ 0xffffffffUL;
+    return crc;
 }
 
 /* ========================================================================= */
@@ -264,9 +224,9 @@ unsigned long ZEXPORT crc32(crc, buf, len)
 
 /* ========================================================================= */
 local unsigned long crc32_little(crc, buf, len)
-    unsigned long crc;
-    const unsigned char FAR *buf;
-    z_size_t len;
+    register unsigned long crc;
+    register const unsigned char FAR *buf;
+    register z_size_t len;
 {
     register z_crc_t c;
     register const z_crc_t FAR *buf4;
@@ -304,9 +264,9 @@ local unsigned long crc32_little(crc, buf, len)
 
 /* ========================================================================= */
 local unsigned long crc32_big(crc, buf, len)
-    unsigned long crc;
-    const unsigned char FAR *buf;
-    z_size_t len;
+    register unsigned long crc;
+    register const unsigned char FAR *buf;
+    register z_size_t len;
 {
     register z_crc_t c;
     register const z_crc_t FAR *buf4;

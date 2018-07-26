@@ -26,7 +26,7 @@ CFLAGS=-O
 
 SFLAGS=-O
 LDFLAGS=
-TEST_LDFLAGS=-L. libz.a
+TEST_LDFLAGS=-L. $(STATICLIB)
 LDSHARED=$(CC)
 CPP=$(CC) -E
 
@@ -150,15 +150,27 @@ match.lo: match.S
 	rm -f _match.s
 
 example.o: $(SRCDIR)test/example.c $(SRCDIR)zlib.h zconf.h
+	$(CC) $(CFLAGS) $(EXTRA_CFLAGS) -DZLIB_STATIC -c -o $@ $(SRCDIR)test/example.c
+
+example.lo: $(SRCDIR)test/example.c $(SRCDIR)zlib.h zconf.h
 	$(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c -o $@ $(SRCDIR)test/example.c
 
 minigzip.o: $(SRCDIR)test/minigzip.c $(SRCDIR)zlib.h zconf.h
+	$(CC) $(CFLAGS) $(EXTRA_CFLAGS) -DZLIB_STATIC -c -o $@ $(SRCDIR)test/minigzip.c
+
+minigzip.lo: $(SRCDIR)test/minigzip.c $(SRCDIR)zlib.h zconf.h
 	$(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c -o $@ $(SRCDIR)test/minigzip.c
 
 example64.o: $(SRCDIR)test/example.c $(SRCDIR)zlib.h zconf.h
+	$(CC) $(CFLAGS) $(EXTRA_CFLAGS) -DZLIB_STATIC -D_FILE_OFFSET_BITS=64 -c -o $@ $(SRCDIR)test/example.c
+
+example64.lo: $(SRCDIR)test/example.c $(SRCDIR)zlib.h zconf.h
 	$(CC) $(CFLAGS) $(EXTRA_CFLAGS) -D_FILE_OFFSET_BITS=64 -c -o $@ $(SRCDIR)test/example.c
 
 minigzip64.o: $(SRCDIR)test/minigzip.c $(SRCDIR)zlib.h zconf.h
+	$(CC) $(CFLAGS) $(EXTRA_CFLAGS) -DZLIB_STATIC -D_FILE_OFFSET_BITS=64 -c -o $@ $(SRCDIR)test/minigzip.c
+
+minigzip64.lo: $(SRCDIR)test/minigzip.c $(SRCDIR)zlib.h zconf.h
 	$(CC) $(CFLAGS) $(EXTRA_CFLAGS) -D_FILE_OFFSET_BITS=64 -c -o $@ $(SRCDIR)test/minigzip.c
 
 

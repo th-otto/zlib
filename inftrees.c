@@ -3,10 +3,15 @@
  * For conditions of distribution and use, see copyright notice in zlib.h
  */
 
+#define ZLIB_COMPILATION
 #include "zutil.h"
 #include "inftrees.h"
 
 #define MAXBITS 15
+
+#ifndef NO_DUMMY_DECL
+struct internal_state      {int dummy;}; /* for buggy compilers */
+#endif
 
 const char inflate_copyright[] =
    " inflate 1.2.11 Copyright 1995-2017 Mark Adler ";
