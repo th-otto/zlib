@@ -1,0 +1,8 @@
+if test "$GTK_INST_DIR" = ""; then
+  echo "GTK_INST_DIR not set; source ../profile first" >&2
+else
+
+rm -rf autom4te.cache
+./configure --prefix="$GTK_INST_PREFIX"  --eprefix="$GTK_INST_PREFIX" --libdir="$GTK_INST_LIBDIR" \
+	--includedir="$GTK_INST_INCLUDEDIR"
+fi

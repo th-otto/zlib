@@ -452,10 +452,6 @@ maintainer-clean: distclean
 distclean: clean zconf docs
 	rm -f Makefile zlib.pc configure.log match.S
 	-@rm -f .DS_Store
-	@if [ -f Makefile.in ]; then \
-	printf 'all:\n\t-@echo "Please use ./configure first.  Thank you."\n' > Makefile ; \
-	printf '\ndistclean:\n\tmake -f Makefile.in distclean\n' >> Makefile ; \
-	touch -r $(SRCDIR)Makefile.in Makefile ; fi
 	@if [ ! -f zconf.h.in ]; then rm -f zconf.h zconf.h.cmakein ; fi
 	@if [ ! -f zlib.3 ]; then rm -f zlib.3.pdf ; fi
 
