@@ -680,7 +680,7 @@ int main(int argc, char **argv)
                             *argv);
                     continue;
                 }
-                outname = malloc(len + 1);
+                outname = z_malloc(len + 1);
                 if (outname == NULL) {
                     fprintf(stderr, "gun out of memory error--aborting\n");
                     ret = 1;
@@ -690,7 +690,7 @@ int main(int argc, char **argv)
                 outname[len] = 0;
             }
             ret = gunzip(&strm, *argv, outname, test);
-            if (outname != NULL) free(outname);
+            if (outname != NULL) z_free(outname);
             if (ret) break;
         } while (argv++, --argc);
     else

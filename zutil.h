@@ -99,6 +99,8 @@ extern z_const char * const z_errmsg[10]; /* indexed by 2-zlib_error */
 #  endif
 #endif
 
+#include "dbgmem.h"
+
 #ifdef AMIGA
 #  define OS_CODE  1
 #endif

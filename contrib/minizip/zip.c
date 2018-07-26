@@ -29,6 +29,7 @@
 #include <time.h>
 #include "zlib.h"
 #include "zip.h"
+#include "dbgmem.h"
 
 #ifdef STDC
 #  include <stddef.h>
@@ -60,10 +61,10 @@
 #endif
 
 #ifndef ALLOC
-# define ALLOC(size) (malloc(size))
+# define ALLOC(size) (z_malloc(size))
 #endif
 #ifndef TRYFREE
-# define TRYFREE(p) {if (p) free(p);}
+# define TRYFREE(p) {if (p) z_free(p);}
 #endif
 
 /*
@@ -1698,7 +1699,7 @@ extern int ZEXPORT zipCloseFileInZipRaw64 (zipFile file, ZPOS64_T uncompressed_s
     if (err==ZIP_OK)
         err = add_data_in_datablock(&zi->central_dir, zi->ci.central_header, (uLong)zi->ci.size_centralheader);
 
-    free(zi->ci.central_header);
+    z_free(zi->ci.central_header);
 
     if (err==ZIP_OK)
     {

@@ -64,7 +64,7 @@ local void *load(const char *name, size_t *len)
     FILE *in;
 
     *len = 0;
-    buf = malloc(size = 4096);
+    buf = z_malloc(size = 4096);
     if (buf == NULL)
         return NULL;
     in = name == NULL ? stdin : fopen(name, "rb");
@@ -73,8 +73,8 @@ local void *load(const char *name, size_t *len)
             *len += fread((char *)buf + *len, 1, size - *len, in);
             if (*len < size) break;
             size = bythirds(size);
-            if (size == *len || (swap = realloc(buf, size)) == NULL) {
-                free(buf);
+            if (size == *len || (swap = z_realloc(buf, size)) == NULL) {
+                z_free(buf);
                 buf = NULL;
                 break;
             }
@@ -122,12 +122,12 @@ int main(int argc, char **argv)
     if (len == 0) {
         fprintf(stderr, "could not read %s, or it was empty\n",
                 name == NULL ? "<stdin>" : name);
-        free(source);
+        z_free(source);
         return 3;
     }
     if (skip >= len) {
         fprintf(stderr, "skip request of %d leaves no input\n", skip);
-        free(source);
+        z_free(source);
         return 3;
     }
 
@@ -147,19 +147,19 @@ int main(int argc, char **argv)
     if (put && ret == 0) {
         if (fail)
             destlen >>= 1;
-        dest = malloc(destlen);
+        dest = z_malloc(destlen);
         if (dest == NULL) {
             fprintf(stderr, "memory allocation failure\n");
-            free(source);
+            z_free(source);
             return 4;
         }
         puff(dest, &destlen, source + skip, &sourcelen);
         SET_BINARY_MODE(stdout);
         fwrite(dest, 1, destlen, stdout);
-        free(dest);
+        z_free(dest);
     }
 
     /* clean up */
-    free(source);
+    z_free(source);
     return ret;
 }

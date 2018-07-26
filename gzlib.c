@@ -109,7 +109,7 @@ local gzFile gz_open(path, fd, mode)
         return NULL;
 
     /* allocate gzFile structure to return */
-    state = (gz_statep)malloc(sizeof(gz_state));
+    state = (gz_statep)z_malloc(sizeof(gz_state));
     if (state == NULL)
         return NULL;
     state->size = 0;            /* no buffers allocated yet */
@@ -138,7 +138,7 @@ local gzFile gz_open(path, fd, mode)
                 break;
 #endif
             case '+':       /* can't read and write at the same time */
-                free(state);
+                z_free(state);
                 return NULL;
             case 'b':       /* ignore -- will request binary anyway */
                 break;
@@ -175,14 +175,14 @@ local gzFile gz_open(path, fd, mode)
 
     /* must provide an "r", "w", or "a" */
     if (state->mode == GZ_NONE) {
-        free(state);
+        z_free(state);
         return NULL;
     }
 
     /* can't force transparent read */
     if (state->mode == GZ_READ) {
         if (state->direct) {
-            free(state);
+            z_free(state);
             return NULL;
         }
         state->direct = 1;      /* for empty file */
@@ -198,9 +198,9 @@ local gzFile gz_open(path, fd, mode)
     else
 #endif
         len = strlen((const char *)path);
-    state->path = (char *)malloc(len + 1);
+    state->path = (char *)z_malloc(len + 1);
     if (state->path == NULL) {
-        free(state);
+        z_free(state);
         return NULL;
     }
 #ifdef WIDECHAR
@@ -241,8 +241,8 @@ local gzFile gz_open(path, fd, mode)
 #endif
         open((const char *)path, oflag, 0666));
     if (state->fd == -1) {
-        free(state->path);
-        free(state);
+        z_free(state->path);
+        z_free(state);
         return NULL;
     }
     if (state->mode == GZ_APPEND) {
@@ -287,11 +287,11 @@ gzFile ZEXPORT gzdopen(fd, mode)
     char *path;         /* identifier for error messages */
     gzFile gz;
 
-    if (fd == -1 || (path = (char *)malloc(7 + 3 * sizeof(int))) == NULL)
+    if (fd == -1 || (path = (char *)z_malloc(7 + 3 * sizeof(int))) == NULL)
         return NULL;
     sprintf(path, "<fd:%d>", fd);   /* for debugging */
     gz = gz_open(path, fd, mode);
-    free(path);
+    z_free(path);
     return gz;
 }
 
@@ -577,7 +577,7 @@ void ZLIB_INTERNAL gz_error(state, err, msg)
     /* free previously allocated message and clear */
     if (state->msg != NULL) {
         if (state->err != Z_MEM_ERROR)
-            free(state->msg);
+            z_free(state->msg);
         state->msg = NULL;
     }
 
@@ -595,7 +595,7 @@ void ZLIB_INTERNAL gz_error(state, err, msg)
         return;
 
     /* construct error message with path */
-    if ((state->msg = (char *)malloc(strlen(state->path) + strlen(msg) + 3)) ==
+    if ((state->msg = (char *)z_malloc(strlen(state->path) + strlen(msg) + 3)) ==
             NULL) {
         state->err = Z_MEM_ERROR;
         return;

@@ -16,6 +16,7 @@
 #include "zlib.h"
 #include "ioapi.h"
 #include "iowin32.h"
+#include "dbgmem.h"
 
 #ifndef INVALID_HANDLE_VALUE
 #define INVALID_HANDLE_VALUE (0xFFFFFFFF)
@@ -83,7 +84,7 @@ static voidpf win32_build_iowin(HANDLE hFile)
         WIN32FILE_IOWIN w32fiow;
         w32fiow.hf = hFile;
         w32fiow.error = 0;
-        ret = malloc(sizeof(WIN32FILE_IOWIN));
+        ret = z_malloc(sizeof(WIN32FILE_IOWIN));
 
         if (ret==NULL)
             CloseHandle(hFile);
@@ -396,7 +397,7 @@ int ZCALLBACK win32_close_file_func (voidpf opaque, voidpf stream)
             CloseHandle(hFile);
             ret=0;
         }
-        free(stream);
+        z_free(stream);
     }
     return ret;
 }

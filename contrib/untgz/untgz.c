@@ -254,10 +254,10 @@ void push_attr(struct attr_item **list,char *fname,int mode,time_t time)
 {
   struct attr_item *item;
 
-  item = (struct attr_item *)malloc(sizeof(struct attr_item));
+  item = (struct attr_item *)z_malloc(sizeof(struct attr_item));
   if (item == NULL)
     error("Out of memory");
-  item->fname = strdup(fname);
+  item->fname = z_strdup(fname);
   item->mode  = mode;
   item->time  = time;
   item->next  = *list;
@@ -277,7 +277,7 @@ void restore_attr(struct attr_item **list)
       chmod(item->fname,item->mode);
       prev = item;
       item = item->next;
-      free(prev);
+      z_free(prev);
     }
   *list = NULL;
 }
@@ -327,12 +327,12 @@ int ExprMatch (char *string,char *expr)
 
 int makedir (char *newdir)
 {
-  char *buffer = strdup(newdir);
+  char *buffer = z_strdup(newdir);
   char *p;
   int  len = strlen(buffer);
 
   if (len <= 0) {
-    free(buffer);
+    z_free(buffer);
     return 0;
   }
   if (buffer[len-1] == '/') {
@@ -340,7 +340,7 @@ int makedir (char *newdir)
   }
   if (mkdir(buffer, 0755) == 0)
     {
-      free(buffer);
+      z_free(buffer);
       return 1;
     }
 
@@ -356,14 +356,14 @@ int makedir (char *newdir)
       if ((mkdir(buffer, 0755) == -1) && (errno == ENOENT))
         {
           fprintf(stderr,"%s: Couldn't create directory %s\n",prog,buffer);
-          free(buffer);
+          z_free(buffer);
           return 0;
         }
       if (hold == 0)
         break;
       *p++ = hold;
     }
-  free(buffer);
+  z_free(buffer);
   return 1;
 }
 

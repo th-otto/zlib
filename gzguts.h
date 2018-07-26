@@ -122,6 +122,7 @@
    define "local" for the non-static meaning of "static", for readability
    (compile with -Dlocal if your debugger can't find static symbols) */
 
+#include "dbgmem.h"
 
 /* get errno and strerror definition */
 #if defined UNDER_CE

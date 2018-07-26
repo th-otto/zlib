@@ -3,6 +3,7 @@
 #include <windows.h>
 
 #include "zlib.h"
+#include "dbgmem.h"
 
 
 void MyDoMinus64(LARGE_INTEGER *R,LARGE_INTEGER A,LARGE_INTEGER B)
@@ -129,7 +130,7 @@ int ReadFileMemory(const char* filename,long* plFileSize,unsigned char** pFilePt
 
     *plFileSize=ftell(stream);
     fseek(stream,0,SEEK_SET);
-    ptr=malloc((*plFileSize)+1);
+    ptr=z_malloc((*plFileSize)+1);
     if (ptr==NULL)
         retVal=0;
     else
@@ -183,7 +184,7 @@ int main(int argc, char *argv[])
     lBufferSizeCpr = lFileSize + (lFileSize/0x10) + 0x200;
     lBufferSizeUncpr = lBufferSizeCpr;
 
-    CprPtr=(unsigned char*)malloc(lBufferSizeCpr + BlockSizeCompress);
+    CprPtr=(unsigned char*)z_malloc(lBufferSizeCpr + BlockSizeCompress);
 
     BeginCountPerfCounter(&li_qp,TRUE);
     dwGetTick=GetTickCount();
@@ -223,8 +224,8 @@ int main(int argc, char *argv[])
         printf("defcpr result rdtsc = %I64x\n\n",dwResRdtsc.QuadPart);
     }
 
-    CprPtr=(unsigned char*)realloc(CprPtr,lSizeCpr);
-    UncprPtr=(unsigned char*)malloc(lBufferSizeUncpr + BlockSizeUncompress);
+    CprPtr=(unsigned char*)z_realloc(CprPtr,lSizeCpr);
+    UncprPtr=(unsigned char*)z_malloc(lBufferSizeUncpr + BlockSizeUncompress);
 
     BeginCountPerfCounter(&li_qp,TRUE);
     dwGetTick=GetTickCount();

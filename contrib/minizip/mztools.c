@@ -121,7 +121,7 @@ uLong* bytesRecovered;
             dataSize = uncpsize;
           }
           if (dataSize > 0) {
-            char* data = malloc(dataSize);
+            char* data = z_malloc(dataSize);
             if (data != NULL) {
               if ((int)fread(data, 1, dataSize, fpZip) == dataSize) {
                 if ((int)fwrite(data, 1, dataSize, fpOut) == dataSize) {
@@ -133,7 +133,7 @@ uLong* bytesRecovered;
               } else {
                 err = Z_ERRNO;
               }
-              free(data);
+              z_free(data);
               if (err != Z_OK) {
                 break;
               }

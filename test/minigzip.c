@@ -15,7 +15,9 @@
 
 /* @(#) $Id$ */
 
+#define ZLIB_COMPILATION
 #include "zlib.h"
+#include "zutil.h"
 #include <stdio.h>
 
 #ifdef STDC
@@ -158,14 +160,14 @@ void *myalloc(q, n, m)
     unsigned n, m;
 {
     (void)q;
-    return calloc(n, m);
+    return z_calloc(n, m);
 }
 
 void myfree(q, p)
     void *q, *p;
 {
     (void)q;
-    free(p);
+    z_free(p);
 }
 
 typedef struct gzFile_s {
@@ -202,7 +204,7 @@ gzFile gz_open(path, fd, mode)
     gzFile gz;
     int ret;
 
-    gz = malloc(sizeof(struct gzFile_s));
+    gz = z_malloc(sizeof(struct gzFile_s));
     if (gz == NULL)
         return NULL;
     gz->write = strchr(mode, 'w') != NULL;
@@ -217,14 +219,14 @@ gzFile gz_open(path, fd, mode)
         ret = inflateInit2(&(gz->strm), 15 + 16);
     }
     if (ret != Z_OK) {
-        free(gz);
+        z_free(gz);
         return NULL;
     }
     gz->file = path == NULL ? fdopen(fd, gz->write ? "wb" : "rb") :
                               fopen(path, gz->write ? "wb" : "rb");
     if (gz->file == NULL) {
         gz->write ? deflateEnd(&(gz->strm)) : inflateEnd(&(gz->strm));
-        free(gz);
+        z_free(gz);
         return NULL;
     }
     gz->err = 0;
@@ -318,7 +320,7 @@ int gzclose(gz)
     else
         inflateEnd(strm);
     fclose(gz->file);
-    free(gz);
+    z_free(gz);
     return Z_OK;
 }
 
@@ -566,6 +568,8 @@ int main(argc, argv)
     else
       bname = prog;
     prog = bname;
+
+    mem_test_start();
     
     argc--, argv++;
 
@@ -644,5 +648,8 @@ int main(argc, argv)
             }
         } while (argv++, --argc);
     }
+
+    mem_test_end();
+
     return 0;
 }

@@ -74,6 +74,7 @@
 
 #include "zlib.h"
 #include "unzip.h"
+#include "dbgmem.h"
 
 #ifdef STDC
 #  include <stddef.h>
@@ -109,10 +110,10 @@
 #endif
 
 #ifndef ALLOC
-# define ALLOC(size) (malloc(size))
+# define ALLOC(size) (z_malloc(size))
 #endif
 #ifndef TRYFREE
-# define TRYFREE(p) {if (p) free(p);}
+# define TRYFREE(p) {if (p) z_free(p);}
 #endif
 
 #define SIZECENTRALDIRITEM (0x2e)

@@ -144,7 +144,7 @@ int main(int argc, char **argv)
     size = (unsigned)ret;
 
     /* allocate memory for buffers and compression engine */
-    blk = malloc(size + EXCESS);
+    blk = z_malloc(size + EXCESS);
     def.zalloc = Z_NULL;
     def.zfree = Z_NULL;
     def.opaque = Z_NULL;
@@ -169,7 +169,7 @@ int main(int argc, char **argv)
         /* clean up and print results to stderr */
         ret = deflateEnd(&def);
         assert(ret != Z_STREAM_ERROR);
-        free(blk);
+        z_free(blk);
         fprintf(stderr,
                 "%u bytes unused out of %u requested (all input)\n",
                 size - have, size);
@@ -183,7 +183,7 @@ int main(int argc, char **argv)
     inf.avail_in = 0;
     inf.next_in = Z_NULL;
     ret = inflateInit(&inf);
-    tmp = malloc(size + EXCESS);
+    tmp = z_malloc(size + EXCESS);
     if (ret != Z_OK || tmp == NULL)
         quit("out of memory");
     ret = deflateReset(&def);
@@ -220,12 +220,12 @@ int main(int argc, char **argv)
         quit("error writing output");
 
     /* clean up and print results to stderr */
-    free(tmp);
+    z_free(tmp);
     ret = inflateEnd(&inf);
     assert(ret != Z_STREAM_ERROR);
     ret = deflateEnd(&def);
     assert(ret != Z_STREAM_ERROR);
-    free(blk);
+    z_free(blk);
     fprintf(stderr,
             "%u bytes unused out of %u requested (%lu input)\n",
             size - have, size, def.total_in);

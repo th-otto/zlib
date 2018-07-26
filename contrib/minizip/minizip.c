@@ -60,6 +60,7 @@
 #endif
 
 #include "zip.h"
+#include "dbgmem.h"
 
 #ifdef _WIN32
         #define USEWIN32IOAPI
@@ -260,7 +261,8 @@ int main(argc,argv)
     void* buf=NULL;
     const char* password=NULL;
 
-
+	mem_test_start();
+	
     do_banner();
     if (argc==1)
     {
@@ -305,7 +307,7 @@ int main(argc,argv)
     }
 
     size_buf = WRITEBUFFERSIZE;
-    buf = (void*)malloc(size_buf);
+    buf = (void*)z_malloc(size_buf);
     if (buf==NULL)
     {
         printf("Error allocating memory\n");
@@ -516,6 +518,9 @@ int main(argc,argv)
        do_help();
     }
 
-    free(buf);
+    z_free(buf);
+    
+    mem_test_end();
+    
     return 0;
 }

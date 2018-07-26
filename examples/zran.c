@@ -82,8 +82,8 @@ struct access {
 local void free_index(struct access *index)
 {
     if (index != NULL) {
-        free(index->list);
-        free(index);
+        z_free(index->list);
+        z_free(index);
     }
 }
 
@@ -96,11 +96,11 @@ local struct access *addpoint(struct access *index, int bits,
 
     /* if list is empty, create it (start with eight points) */
     if (index == NULL) {
-        index = malloc(sizeof(struct access));
+        index = z_malloc(sizeof(struct access));
         if (index == NULL) return NULL;
-        index->list = malloc(sizeof(struct point) << 3);
+        index->list = z_malloc(sizeof(struct point) << 3);
         if (index->list == NULL) {
-            free(index);
+            z_free(index);
             return NULL;
         }
         index->size = 8;
@@ -110,7 +110,7 @@ local struct access *addpoint(struct access *index, int bits,
     /* if list is full, make it bigger */
     else if (index->have == index->size) {
         index->size <<= 1;
-        next = realloc(index->list, sizeof(struct point) * index->size);
+        next = z_realloc(index->list, sizeof(struct point) * index->size);
         if (next == NULL) {
             free_index(index);
             return NULL;
@@ -226,7 +226,7 @@ local int build_index(FILE *in, off_t span, struct access **built)
 
     /* clean up and return index (release unused entries in list) */
     (void)inflateEnd(&strm);
-    index->list = realloc(index->list, sizeof(struct point) * index->have);
+    index->list = z_realloc(index->list, sizeof(struct point) * index->have);
     index->size = index->have;
     *built = index;
     return index->size;

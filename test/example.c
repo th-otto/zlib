@@ -12,6 +12,7 @@
 #  include <string.h>
 #  include <stdlib.h>
 #endif
+#include "dbgmem.h"
 
 #if defined(VMS) || defined(RISCOS)
 #  define TESTFILE "foo-gz"
@@ -60,13 +61,13 @@ void *myalloc(q, n, m)
     unsigned n, m;
 {
     (void)q;
-    return calloc(n, m);
+    return z_calloc(n, m);
 }
 
 void myfree(void *q, void *p)
 {
     (void)q;
-    free(p);
+    z_free(p);
 }
 
 static alloc_func zalloc = myalloc;
@@ -562,8 +563,8 @@ int main(argc, argv)
     printf("zlib version %s = 0x%04x, compile flags = 0x%lx\n",
             ZLIB_VERSION, ZLIB_VERNUM, zlibCompileFlags());
 
-    compr    = (Byte*)calloc((uInt)comprLen, 1);
-    uncompr  = (Byte*)calloc((uInt)uncomprLen, 1);
+    compr    = (Byte*)z_calloc((uInt)comprLen, 1);
+    uncompr  = (Byte*)z_calloc((uInt)uncomprLen, 1);
     /* compr and uncompr are cleared to avoid reading uninitialized
      * data and to ensure that uncompr compresses well.
      */
@@ -595,8 +596,8 @@ int main(argc, argv)
     test_dict_deflate(compr, comprLen);
     test_dict_inflate(compr, comprLen, uncompr, uncomprLen);
 
-    free(compr);
-    free(uncompr);
+    z_free(compr);
+    z_free(uncompr);
 
     return 0;
 }

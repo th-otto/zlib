@@ -81,15 +81,15 @@ local void *mem_alloc(void *mem, unsigned count, unsigned size)
 
     /* perform allocation using the standard library, fill memory with a
        non-zero value to make sure that the code isn't depending on zeros */
-    ptr = malloc(len);
+    ptr = z_malloc(len);
     if (ptr == NULL)
         return NULL;
     memset(ptr, 0xa5, len);
 
     /* create a new item for the list */
-    item = malloc(sizeof(struct mem_item));
+    item = z_malloc(sizeof(struct mem_item));
     if (item == NULL) {
-        free(ptr);
+        z_free(ptr);
         return NULL;
     }
     item->ptr = ptr;
@@ -116,7 +116,7 @@ local void mem_free(void *mem, void *ptr)
 
     /* if no zone, just do a free */
     if (zone == NULL) {
-        free(ptr);
+        z_free(ptr);
         return;
     }
 
@@ -142,7 +142,7 @@ local void mem_free(void *mem, void *ptr)
     /* if found, update the statistics and free the item */
     if (next) {
         zone->total -= next->size;
-        free(next);
+        z_free(next);
     }
 
     /* if not found, update the rogue count */
@@ -150,7 +150,7 @@ local void mem_free(void *mem, void *ptr)
         zone->rogue++;
 
     /* in any case, do the requested free with the standard library function */
-    free(ptr);
+    z_free(ptr);
 }
 
 /* set up a controlled memory allocation space for monitoring, set the stream
@@ -159,7 +159,7 @@ local void mem_setup(z_stream *strm)
 {
     struct mem_zone *zone;
 
-    zone = malloc(sizeof(struct mem_zone));
+    zone = z_malloc(sizeof(struct mem_zone));
     assert(zone != NULL);
     zone->first = NULL;
     zone->total = 0;
@@ -209,9 +209,9 @@ local void mem_done(z_stream *strm, char *prefix)
     /* free leftover allocations and item structures, if any */
     item = zone->first;
     while (item != NULL) {
-        free(item->ptr);
+        z_free(item->ptr);
         next = item->next;
-        free(item);
+        z_free(item);
         item = next;
         count++;
     }
@@ -227,7 +227,7 @@ local void mem_done(z_stream *strm, char *prefix)
                 prefix, zone->rogue);
 
     /* free the zone and delete from the stream */
-    free(zone);
+    z_free(zone);
     strm->opaque = Z_NULL;
     strm->zalloc = Z_NULL;
     strm->zfree = Z_NULL;
@@ -247,7 +247,7 @@ local unsigned char *h2b(const char *hex, unsigned *len)
     unsigned char *in, *re;
     unsigned next, val;
 
-    in = malloc((strlen(hex) + 1) >> 1);
+    in = z_malloc((strlen(hex) + 1) >> 1);
     if (in == NULL)
         return NULL;
     next = 0;
@@ -268,7 +268,7 @@ local unsigned char *h2b(const char *hex, unsigned *len)
     } while (*hex++);       /* go through the loop with the terminating null */
     if (len != NULL)
         *len = next;
-    re = realloc(in, next);
+    re = z_realloc(in, next);
     return re == NULL ? in : re;
 }
 
@@ -298,7 +298,7 @@ local void inf(char *hex, char *what, unsigned step, int win, unsigned len,
         mem_done(&strm, what);
         return;
     }
-    out = malloc(len);                          assert(out != NULL);
+    out = z_malloc(len);                          assert(out != NULL);
     if (win == 47) {
         head.extra = out;
         head.extra_max = len;
@@ -339,8 +339,8 @@ local void inf(char *hex, char *what, unsigned step, int win, unsigned len,
         strm.avail_in = step > have ? have : step;
         have -= strm.avail_in;
     } while (strm.avail_in);
-    free(in);
-    free(out);
+    z_free(in);
+    z_free(out);
     ret = inflateReset2(&strm, -8);             assert(ret == Z_OK);
     ret = inflateEnd(&strm);                    assert(ret == Z_OK);
     mem_done(&strm, what);
@@ -521,11 +521,11 @@ local int try(char *hex, char *id, int err)
 
     /* allocate work areas */
     size = len << 3;
-    out = malloc(size);
+    out = z_malloc(size);
     assert(out != NULL);
-    win = malloc(32768);
+    win = z_malloc(32768UL);
     assert(win != NULL);
-    prefix = malloc(strlen(id) + 6);
+    prefix = z_malloc(strlen(id) + 6);
     assert(prefix != NULL);
 
     /* first with inflate */
@@ -573,10 +573,10 @@ local int try(char *hex, char *id, int err)
     }
 
     /* clean up */
-    free(prefix);
-    free(win);
-    free(out);
-    free(in);
+    z_free(prefix);
+    z_free(win);
+    z_free(out);
+    z_free(in);
     return ret;
 }
 

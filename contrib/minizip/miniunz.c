@@ -57,6 +57,7 @@
 
 
 #include "unzip.h"
+#include "dbgmem.h"
 
 #define CASESENSITIVITY (0)
 #define WRITEBUFFERSIZE (8192)
@@ -146,7 +147,7 @@ int makedir (newdir)
   if (len <= 0)
     return 0;
 
-  buffer = (char*)malloc(len+1);
+  buffer = (char*)z_malloc(len+1);
         if (buffer==NULL)
         {
                 printf("Error allocating memory\n");
@@ -159,7 +160,7 @@ int makedir (newdir)
   }
   if (mymkdir(buffer) == 0)
     {
-      free(buffer);
+      z_free(buffer);
       return 1;
     }
 
@@ -175,14 +176,14 @@ int makedir (newdir)
       if ((mymkdir(buffer) == -1) && (errno == ENOENT))
         {
           printf("couldn't create directory %s\n",buffer);
-          free(buffer);
+          z_free(buffer);
           return 0;
         }
       if (hold == 0)
         break;
       *p++ = hold;
     }
-  free(buffer);
+  z_free(buffer);
   return 1;
 }
 
@@ -335,7 +336,7 @@ int do_extract_currentfile(uf,popt_extract_without_path,popt_overwrite,password)
     }
 
     size_buf = WRITEBUFFERSIZE;
-    buf = (void*)malloc(size_buf);
+    buf = (void*)z_malloc(size_buf);
     if (buf==NULL)
     {
         printf("Error allocating memory\n");
@@ -468,7 +469,7 @@ int do_extract_currentfile(uf,popt_extract_without_path,popt_overwrite,password)
             unzCloseCurrentFile(uf); /* don't lose the error */
     }
 
-    free(buf);
+    z_free(buf);
     return err;
 }
 
@@ -550,6 +551,8 @@ int main(argc,argv)
     const char *dirname=NULL;
     unzFile uf=NULL;
 
+    mem_test_start();
+    
     do_banner();
     if (argc==1)
     {
@@ -657,5 +660,7 @@ int main(argc,argv)
 
     unzClose(uf);
 
+    mem_test_end();
+    
     return ret_value;
 }
