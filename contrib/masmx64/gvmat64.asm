@@ -40,9 +40,6 @@
 ;
 ; to compile this file for zLib, I use option:
 ;   ml64.exe /Flgvmat64 /c /Zi gvmat64.asm
-; Be carrefull to adapt zlib1222add below to your version of zLib
-;   (if you use a version of zLib before 1.0.4 or after 1.2.2.2, change
-;    value of zlib1222add later)
 ;
 ; This file compile with Microsoft Macro Assembler (x64) for AMD64
 ;
@@ -129,13 +126,6 @@ save_r13        equ  rsp + 64 - LocalVarsSize
 ;;; program to crash horribly, without so much as a warning at
 ;;; compile time. Sigh.)
 
-;  all the +zlib1222add offsets are due to the addition of fields
-;  in zlib in the deflate_state structure since the asm code was first written
-;  (if you compile with zlib 1.0.4 or older, use "zlib1222add equ (-4)").
-;  (if you compile with zlib between 1.0.5 and 1.2.2.1, use "zlib1222add equ 0").
-;  if you compile with zlib 1.2.2.2 or later , use "zlib1222add equ 8").
-
-
 IFDEF INFOZIP
 
 _DATA   SEGMENT
@@ -160,22 +150,19 @@ WMask equ 07fffh
 
 ELSE
 
-  IFNDEF zlib1222add
-    zlib1222add equ 8
-  ENDIF
-dsWSize         equ 56+zlib1222add+(zlib1222add/2)
-dsWMask         equ 64+zlib1222add+(zlib1222add/2)
-dsWindow        equ 72+zlib1222add
-dsPrev          equ 88+zlib1222add
-dsMatchLen      equ 128+zlib1222add
-dsPrevMatch     equ 132+zlib1222add
-dsStrStart      equ 140+zlib1222add
-dsMatchStart    equ 144+zlib1222add
-dsLookahead     equ 148+zlib1222add
-dsPrevLen       equ 152+zlib1222add
-dsMaxChainLen   equ 156+zlib1222add
-dsGoodMatch     equ 172+zlib1222add
-dsNiceMatch     equ 176+zlib1222add
+dsWSize         equ 68
+dsWMask         equ 76
+dsWindow        equ 80
+dsPrev          equ 96
+dsMatchLen      equ 144
+dsPrevMatch     equ 148
+dsStrStart      equ 156
+dsMatchStart    equ 160
+dsLookahead     equ 164
+dsPrevLen       equ 168
+dsMaxChainLen   equ 172
+dsGoodMatch     equ 188
+dsNiceMatch     equ 192
 
 window_size     equ [ rcx + dsWSize]
 WMask           equ [ rcx + dsWMask]

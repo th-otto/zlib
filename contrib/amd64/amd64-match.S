@@ -48,6 +48,7 @@
 #define save_r14        (24-LocalVarsSize)(%rsp)
 #define save_rsi        (32-LocalVarsSize)(%rsp)
 #define save_rbx        (40-LocalVarsSize)(%rsp)
+#define save_rdi        (48-LocalVarsSize)(%rsp)
 #define save_r12        (56-LocalVarsSize)(%rsp)
 #define save_r13        (64-LocalVarsSize)(%rsp)
 #define save_r15        (80-LocalVarsSize)(%rsp)
@@ -145,15 +146,20 @@ printf("#define dsNiceMatch     (%3u)(%%rdi)\n",(int)(((char*)&(s->nice_match))-
 longest_match:
 /*
  * Retrieve the function arguments. %curmatch will hold cur_match
- * throughout the entire function (passed via rsi on amd64).
- * rdi will hold the pointer to the deflate_state (first arg on amd64)
+ * throughout the entire function (passed via rsi on amd64, rdx on Win64).
+ * rdi will hold the pointer to the deflate_state (first arg on amd64, passed in rcx on Win64)
  */
 		mov     %rsi, save_rsi
 		mov     %rbx, save_rbx
-		mov	%r12, save_r12
+		mov     %r12, save_r12
 		mov     %r13, save_r13
 		mov     %r14, save_r14
 		mov     %r15, save_r15
+#ifdef _WIN32
+		mov     %rdi, save_rdi
+		mov     %rcx, %rdi
+		mov     %rdx, %rsi
+#endif
 
 /* uInt wmask = s->w_mask;						*/
 /* unsigned chain_length = s->max_chain_length;				*/
@@ -441,6 +447,9 @@ LookaheadRet:
 /* Restore the registers and return from whence we came.			*/
 
 	mov	save_rsi, %rsi
+#ifdef _WIN32
+	mov save_rdi, %rdi
+#endif
 	mov	save_rbx, %rbx
 	mov	save_r12, %r12
 	mov	save_r13, %r13

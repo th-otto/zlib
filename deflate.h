@@ -151,7 +151,11 @@ typedef struct internal_state {
      *   hash_shift * MIN_MATCH >= hash_bits
      */
 
+#ifdef _WIN64
+    __int64 block_start;
+#else
     long block_start;
+#endif
     /* Window position at the beginning of the current output block. Gets
      * negative when the window is moved backwards.
      */

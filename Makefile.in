@@ -71,6 +71,7 @@ PIC_OBJG = compress.lo uncompr.lo gzclose.lo gzlib.lo gzread.lo gzwrite.lo
 PIC_OBJC = $(PIC_OBJZ) $(PIC_OBJG)
 
 # to use the asm code: make OBJA=match.o, PIC_OBJA=match.lo
+ASMV =
 OBJA =
 PIC_OBJA =
 
@@ -414,7 +415,7 @@ clean:
 
 maintainer-clean: distclean
 distclean: clean zconf docs
-	rm -f Makefile zlib.pc configure.log
+	rm -f Makefile zlib.pc configure.log match.S
 	-@rm -f .DS_Store
 	@if [ -f Makefile.in ]; then \
 	printf 'all:\n\t-@echo "Please use ./configure first.  Thank you."\n' > Makefile ; \

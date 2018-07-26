@@ -89,7 +89,6 @@ local void putShortMSB    OF((deflate_state *s, uInt b));
 local void flush_pending  OF((z_streamp strm));
 local unsigned read_buf   OF((z_streamp strm, Bytef *buf, unsigned size));
 #ifdef ASMV
-#  pragma message("Assembler code may have bugs -- use at your own risk")
       void match_init OF((void)); /* asm code initialization */
       uInt longest_match  OF((deflate_state *s, IPos cur_match));
 #else
@@ -402,7 +401,7 @@ int ZEXPORT deflateSetDictionary (strm, dictionary, dictLength)
         if (wrap == 0) {            /* already empty otherwise */
             CLEAR_HASH(s);
             s->strstart = 0;
-            s->block_start = 0L;
+            s->block_start = 0;
             s->insert = 0;
         }
         dictionary += dictLength - s->w_size;  /* use the tail */
@@ -431,7 +430,7 @@ int ZEXPORT deflateSetDictionary (strm, dictionary, dictLength)
         fill_window(s);
     }
     s->strstart += s->lookahead;
-    s->block_start = (long)s->strstart;
+    s->block_start = s->strstart;
     s->insert = s->lookahead;
     s->lookahead = 0;
     s->match_length = s->prev_length = MIN_MATCH-1;
@@ -1031,7 +1030,7 @@ int ZEXPORT deflate (strm, flush)
                     CLEAR_HASH(s);             /* forget history */
                     if (s->lookahead == 0) {
                         s->strstart = 0;
-                        s->block_start = 0L;
+                        s->block_start = 0;
                         s->insert = 0;
                     }
                 }
@@ -1207,7 +1206,7 @@ local void lm_init (s)
     s->max_chain_length = configuration_table[s->level].max_chain;
 
     s->strstart = 0;
-    s->block_start = 0L;
+    s->block_start = 0;
     s->lookahead = 0;
     s->insert = 0;
     s->match_length = s->prev_length = MIN_MATCH-1;
@@ -1604,7 +1603,7 @@ local void fill_window(s)
  * IN assertion: strstart is set to the end of the current match.
  */
 #define FLUSH_BLOCK_ONLY(s, last) { \
-   _tr_flush_block(s, (s->block_start >= 0L ? \
+   _tr_flush_block(s, (s->block_start >= 0 ? \
                    (charf *)&s->window[(unsigned)s->block_start] : \
                    (charf *)Z_NULL), \
                 (ulg)((long)s->strstart - s->block_start), \

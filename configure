@@ -92,6 +92,7 @@ cover=0
 zprefix=0
 zconst=0
 build64=0
+asmv=no
 gcc=0
 warn=0
 debug=0
@@ -143,6 +144,9 @@ case "$1" in
     -a*=* | --archs=*) ARCHS=`echo $1 | sed 's/.*=//'`; shift ;;
     --sysconfdir=*) echo "ignored option: --sysconfdir" | tee -a configure.log; shift ;;
     --bindir=*) bindir=`echo $1 | sed 's/.*=//'`; shift ;;
+    --enable-asm=*) asmv=`echo $1 | sed 's/.*=//'`; shift ;;
+    --enable-asm) asmv=yes; shift ;;
+    --disable-asm) asmv=no; shift ;;
     --localstatedir=*) echo "ignored option: --localstatedir" | tee -a configure.log; shift ;;
     -c* | --const) zconst=1; shift ;;
     -w* | --warn) warn=1; shift ;;
@@ -489,10 +493,13 @@ else
   TEST="all teststatic testshared"
 fi
 
+case $CFLAGS in
+  *-DASMV*) asmv=yes; CFLAGS="`echo $CFLAGS | sed -e 's/-DASMV\(=[0-9]*\)*//g'`" ;;
+esac
+
 # check for underscores in external names for use by assembler code
 CPP=${CPP-"$CC -E"}
-case $CFLAGS in
-  *ASMV*)
+if test $asmv = yes; then
     echo >> configure.log
     show "$NM $test.o | grep _hello"
     if test "`$NM $test.o | grep _hello | tee -a configure.log`" = ""; then
@@ -500,8 +507,27 @@ case $CFLAGS in
       echo Checking for underline in external names... No. | tee -a configure.log
     else
       echo Checking for underline in external names... Yes. | tee -a configure.log
-    fi ;;
-esac
+    fi
+    asmv=no
+    for i in contrib/asm686/match.S contrib/amd64/amd64-match.S; do
+        rm -f match.S
+        cp $i match.S
+        show "$CC -c $i"
+        if ($CC -c $CFLAGS -o $test.o match.S) 2>/dev/null; then
+           asmv=yes
+           break
+        fi
+    done
+    if test $asmv = no; then
+       echo Checking for assembler support... No. | tee -a configure.log
+       rm -f match.S
+    else
+       echo Checking for assembler support... Yes. | tee -a configure.log
+       ASMV=-DASMV
+       OBJA=match.o
+       PIC_OBJA=match.lo
+    fi
+fi
 
 echo >> configure.log
 
@@ -896,6 +922,9 @@ echo LDSHARED = $LDSHARED >> configure.log
 echo LDSHAREDLIBC = $LDSHAREDLIBC >> configure.log
 echo OBJC = $OBJC >> configure.log
 echo PIC_OBJC = $PIC_OBJC >> configure.log
+echo ASMV = $ASMV >> configure.log
+echo OBJA = $OBJA >> configure.log
+echo PIC_OBJA = $PIC_OBJA >> configure.log
 echo RANLIB = $RANLIB >> configure.log
 echo WINDRES = $WINDRES >> configure.log
 echo SFLAGS = $SFLAGS >> configure.log
@@ -952,6 +981,9 @@ sed < ${SRCDIR}Makefile.in "
 /^mandir *=/s#=.*#=$mandir#
 /^OBJC *=/s#=.*#= $OBJC#
 /^PIC_OBJC *=/s#=.*#= $PIC_OBJC#
+/^ASMV *=/s#=.*#= $ASMV#
+/^OBJA *=/s#=.*#= $OBJA#
+/^PIC_OBJA *=/s#=.*#= $PIC_OBJA#
 /^RC_OBJS *=/s#=.*#= $RC_OBJS#
 /^all: */s#:.*#: $ALL#
 /^test: */s#:.*#: $TEST#
