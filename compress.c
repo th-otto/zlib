@@ -9,6 +9,10 @@
 #define ZLIB_COMPILATION
 #include "zlib.h"
 
+#ifndef NO_DUMMY_DECL
+struct internal_state      {int dummy;}; /* for buggy compilers */
+#endif
+
 /* ===========================================================================
      Compresses the source buffer into the destination buffer. The level
    parameter has the same meaning as in deflateInit.  sourceLen is the byte

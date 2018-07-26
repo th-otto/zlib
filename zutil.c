@@ -11,6 +11,10 @@
 #  include "gzguts.h"
 #endif
 
+#ifndef NO_DUMMY_DECL
+struct internal_state      {int dummy;}; /* for buggy compilers */
+#endif
+
 z_const char * const z_errmsg[10] = {
     (z_const char *)"need dictionary",     /* Z_NEED_DICT       2  */
     (z_const char *)"stream end",          /* Z_STREAM_END      1  */

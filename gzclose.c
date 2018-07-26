@@ -6,6 +6,10 @@
 #define ZLIB_COMPILATION
 #include "gzguts.h"
 
+#ifndef NO_DUMMY_DECL
+struct internal_state      {int dummy;}; /* for buggy compilers */
+#endif
+
 /* gzclose() is in a separate file so that it is linked in only if it is used.
    That way the other gzclose functions can be used instead to avoid linking in
    unneeded compression or decompression routines. */

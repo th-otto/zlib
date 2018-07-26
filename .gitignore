@@ -58,6 +58,9 @@ example
 example64
 minigzip
 minigzip64
+examplesh
+minigzipsh
+libz.so*
 
 m4/amversion.m4
 m4/auxdir.m4

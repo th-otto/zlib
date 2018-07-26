@@ -756,7 +756,7 @@ local void flush_pending(strm)
     do { \
         if (s->gzhead->hcrc && s->pending > (beg)) \
             strm->adler = crc32(strm->adler, s->pending_buf + (beg), \
-                                s->pending - (beg)); \
+                                (uInt)(s->pending - (beg))); \
     } while (0)
 
 /* ========================================================================= */
@@ -902,10 +902,10 @@ int ZEXPORT deflate (strm, flush)
             ulg beg = s->pending;   /* start of bytes to update crc */
             uInt left = (s->gzhead->extra_len & 0xffff) - s->gzindex;
             while (s->pending + left > s->pending_buf_size) {
-                uInt copy = s->pending_buf_size - s->pending;
+                uInt copy = (uInt)(s->pending_buf_size - s->pending);
                 zmemcpy(s->pending_buf + s->pending,
                         s->gzhead->extra + s->gzindex, copy);
-                s->pending = s->pending_buf_size;
+                s->pending = (uInt)s->pending_buf_size;
                 HCRC_UPDATE(beg);
                 s->gzindex += copy;
                 flush_pending(strm);
@@ -1360,7 +1360,7 @@ local uInt longest_match(s, pcur_match)
 #endif /* UNALIGNED_OK */
 
         if (len > best_len) {
-            s->match_start = cur_match;
+            s->match_start = (uInt)cur_match;
             best_len = len;
             if (len >= nice_match) break;
 #ifdef UNALIGNED_OK
@@ -1621,7 +1621,7 @@ local void fill_window(s)
 }
 
 /* Maximum stored block length in deflate format (not including header). */
-#define MAX_STORED 65535
+#define MAX_STORED 65535UL
 
 /* Minimum of a and b. */
 #define MIN(a, b) ((a) > (b) ? (b) : (a))
@@ -1649,7 +1649,7 @@ local block_state deflate_stored(s, flush)
      * this is 32K. This can be as small as 507 bytes for memLevel == 1. For
      * large input and output buffers, the stored block size will be larger.
      */
-    unsigned min_block = MIN(s->pending_buf_size - 5, s->w_size);
+    unsigned min_block = (uInt)MIN(s->pending_buf_size - 5, s->w_size);
 
     /* Copy as many min_block or larger stored blocks directly to next_out as
      * possible. If flushing, copy the remaining available input to next_out as
@@ -1662,13 +1662,13 @@ local block_state deflate_stored(s, flush)
          * available input data and output space. Set left to how much of that
          * would be copied from what's left in the window.
          */
-        len = MAX_STORED;       /* maximum deflate stored block length */
+        len = (uInt)MAX_STORED;       /* maximum deflate stored block length */
         have = (s->bi_valid + 42) >> 3;         /* number of header bytes */
         if (s->strm->avail_out < have)          /* need room for header */
             break;
             /* maximum stored block length that will fit in avail_out: */
         have = s->strm->avail_out - have;
-        left = s->strstart - s->block_start;    /* bytes left in window */
+        left = (uInt)(s->strstart - s->block_start);    /* bytes left in window */
         if (len > (ulg)left + s->strm->avail_in)
             len = left + s->strm->avail_in;     /* limit len to the input */
         if (len > have)
@@ -1771,7 +1771,7 @@ local block_state deflate_stored(s, flush)
         return block_done;
 
     /* Fill the window with any remaining input. */
-    have = s->window_size - s->strstart - 1;
+    have = (uInt)(s->window_size - s->strstart - 1);
     if (s->strm->avail_in > have && s->block_start >= (long)s->w_size) {
         /* Slide the window down. */
         s->block_start -= s->w_size;
@@ -1797,9 +1797,9 @@ local block_state deflate_stored(s, flush)
      */
     have = (s->bi_valid + 42) >> 3;         /* number of header bytes */
         /* maximum stored block length that will fit in pending: */
-    have = MIN(s->pending_buf_size - have, MAX_STORED);
+    have = (uInt)MIN(s->pending_buf_size - have, MAX_STORED);
     min_block = MIN(have, s->w_size);
-    left = s->strstart - s->block_start;
+    left = (uInt)(s->strstart - s->block_start);
     if (left >= min_block ||
         ((left || flush == Z_FINISH) && flush != Z_NO_FLUSH &&
          s->strm->avail_in == 0 && left <= have)) {

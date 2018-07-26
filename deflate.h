@@ -81,6 +81,14 @@ typedef struct ct_data_s {
 #define Dad  dl.dad
 #define Len  dl.len
 
+struct static_tree_desc_s {
+    const ct_data *static_tree;  /* static tree or NULL */
+    const intf *extra_bits;      /* extra bits for each code or NULL */
+    int     extra_base;          /* base index for extra_bits */
+    int     elems;               /* max number of elements in the tree */
+    int     max_length;          /* max bit length for the codes */
+};
+
 typedef struct static_tree_desc_s  static_tree_desc;
 
 typedef struct tree_desc_s {

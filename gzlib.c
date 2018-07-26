@@ -16,6 +16,10 @@
 #endif
 #endif
 
+#ifndef NO_DUMMY_DECL
+struct internal_state      {int dummy;}; /* for buggy compilers */
+#endif
+
 /* Local functions */
 local void gz_reset OF((gz_statep));
 local gzFile gz_open OF((const void *, int, const char *));
@@ -215,7 +219,7 @@ local gzFile gz_open(path, fd, mode)
 
     /* compute the flags for open() */
     oflag =
-#ifdef O_LARGEFILE
+#if defined (O_LARGEFILE) && !defined(__MSHORT__)
         O_LARGEFILE |
 #endif
 #ifdef O_BINARY

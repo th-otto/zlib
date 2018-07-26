@@ -9,6 +9,10 @@
 #define ZLIB_COMPILATION
 #include "zlib.h"
 
+#ifndef NO_DUMMY_DECL
+struct internal_state      {int dummy;}; /* for buggy compilers */
+#endif
+
 /* ===========================================================================
      Decompresses the source buffer into the destination buffer.  *sourceLen is
    the byte length of the source buffer. Upon entry, *destLen is the total size

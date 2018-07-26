@@ -115,14 +115,6 @@ local int base_dist[D_CODES];
 #  include "trees.h"
 #endif /* GEN_TREES_H */
 
-struct static_tree_desc_s {
-    const ct_data *static_tree;  /* static tree or NULL */
-    const intf *extra_bits;      /* extra bits for each code or NULL */
-    int     extra_base;          /* base index for extra_bits */
-    int     elems;               /* max number of elements in the tree */
-    int     max_length;          /* max bit length for the codes */
-};
-
 local const static_tree_desc  static_l_desc =
 {static_ltree, extra_lbits, LITERALS+1, L_CODES, MAX_BITS};
 
@@ -872,7 +864,7 @@ void ZLIB_INTERNAL _tr_stored_block(s, buf, stored_len, last)
     put_short(s, (ush)stored_len);
     put_short(s, (ush)~stored_len);
     zmemcpy(s->pending_buf + s->pending, (Bytef *)buf, stored_len);
-    s->pending += stored_len;
+    s->pending += (uInt)stored_len;
 #ifdef ZLIB_DEBUG
     s->compressed_len = (s->compressed_len + 3 + 7) & (ulg)~7L;
     s->compressed_len += (stored_len + 4) << 3;
