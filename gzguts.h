@@ -35,7 +35,7 @@
 #  include <stddef.h>
 #endif
 
-#if defined(__TURBOC__) || defined(_MSC_VER) || defined(_WIN32)
+#if (defined(__TURBOC__) && !defined(__PUREC__)) || defined(_MSC_VER) || defined(_WIN32)
 #  include <io.h>
 #endif
 
@@ -81,10 +81,15 @@
 #  ifdef __TURBOC__
 #    define NO_vsnprintf
 #  endif
+#  if defined(__PUREC__) && __PUREC__ < 0x500
+#    define NO_vsnprintf
+#    define NO_snprintf
+#  endif
 #  ifdef WIN32
 /* In Win32, vsnprintf is available as the "non-ANSI" _vsnprintf. */
 #    if !defined(vsnprintf) && !defined(NO_vsnprintf)
 #      if !defined(_MSC_VER) || ( defined(_MSC_VER) && _MSC_VER < 1500 )
+#         include <io.h>
 #         define vsnprintf _vsnprintf
 #      endif
 #    endif
@@ -117,11 +122,6 @@
    define "local" for the non-static meaning of "static", for readability
    (compile with -Dlocal if your debugger can't find static symbols) */
 
-/* gz* functions always use library allocation functions */
-#ifndef STDC
-  extern voidp  malloc OF((uInt size));
-  extern void   free   OF((voidpf ptr));
-#endif
 
 /* get errno and strerror definition */
 #if defined UNDER_CE

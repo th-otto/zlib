@@ -86,7 +86,7 @@ extern z_const char * const z_errmsg[10]; /* indexed by 2-zlib_error */
 #  define OS_CODE  0x00
 #  ifndef Z_SOLO
 #    if defined(__TURBOC__) || defined(__BORLANDC__)
-#      if (__STDC__ == 1) && (defined(__LARGE__) || defined(__COMPACT__))
+#      if (defined(__STRICT_ANSI__)) && (defined(__LARGE__) || defined(__COMPACT__))
          /* Allow compilation with ANSI keywords only enabled */
          void _Cdecl farfree( void *block );
          void *_Cdecl farmalloc( unsigned long nbytes );
@@ -119,8 +119,10 @@ extern z_const char * const z_errmsg[10]; /* indexed by 2-zlib_error */
 #  endif
 #endif
 
-#if defined(ATARI) || defined(atarist)
-#  define OS_CODE  5
+#if defined(ATARI) || defined(__atarist__) || defined(__TOS__)
+#  ifndef __MINT__ /* MiNT is Unix, not TOS */
+#    define OS_CODE  0x05
+#  endif
 #endif
 
 #ifdef OS2

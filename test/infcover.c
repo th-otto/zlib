@@ -14,8 +14,8 @@
 /* get definition of internal structure so we can mess with it (see pull()),
    and so we can call inflate_trees() (see cover5()) */
 #define ZLIB_INTERNAL
-#include "inftrees.h"
-#include "inflate.h"
+#include "../inftrees.h"
+#include "../inflate.h"
 
 #define local static
 
@@ -471,7 +471,10 @@ local void cover_back(void)
 {
     int ret;
     z_stream strm;
-    unsigned char win[32768];
+#ifdef __PUREC__
+	static
+#endif
+    unsigned char win[32768L];
 
     ret = inflateBackInit_(Z_NULL, 0, win, 0, 0);
                                                 assert(ret == Z_VERSION_ERROR);
