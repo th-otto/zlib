@@ -1,0 +1,13 @@
+testx.ttp
+
+.C[-Ic:\pc\include]
+
+.C [-K -P -R -A]
+.C[-DNO_snprintf]
+.C[-L40]
+
+=
+
+c:\pc\lib\cstartv.o
+testx.c
+c:\pc\lib\pcstdlib.lib
