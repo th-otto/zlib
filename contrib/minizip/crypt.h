@@ -98,7 +98,9 @@ static int crypthead(const char* passwd,      /* password string */
     int t;                       /* temporary */
     int c;                       /* random byte */
     unsigned char header[RAND_HEAD_LEN-2]; /* random header */
+#if 0
     static unsigned calls = 0;   /* ensure different random header each time */
+#endif
 
     if (bufSize<RAND_HEAD_LEN)
       return 0;
@@ -107,10 +109,12 @@ static int crypthead(const char* passwd,      /* password string */
      * output of rand() to get less predictability, since rand() is
      * often poorly implemented.
      */
+#if 0 /* do not mess with applications rand() state */
     if (++calls == 1)
     {
         srand((unsigned)(time(NULL) ^ ZCR_SEED2));
     }
+#endif
     init_keys(passwd, pkeys, pcrc_32_tab);
     for (n = 0; n < RAND_HEAD_LEN-2; n++)
     {

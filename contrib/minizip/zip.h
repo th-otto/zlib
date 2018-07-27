@@ -44,8 +44,6 @@
 extern "C" {
 #endif
 
-//#define HAVE_BZIP2
-
 #ifndef _ZLIB_H
 #include "zlib.h"
 #endif
@@ -56,6 +54,10 @@ extern "C" {
 
 #ifdef HAVE_BZIP2
 #include "bzlib.h"
+#endif
+
+#if defined(ZLIB_COMPILATION) && defined(ZLIB_SLB)
+#include "zlibslb.h"
 #endif
 
 #define Z_BZIP2ED 12

@@ -67,6 +67,10 @@
 #endif
 #endif
 
+#if defined(ZLIB_COMPILATION) && defined(ZLIB_SLB)
+#include "zlibslb.h"
+#endif
+
 /*
 #ifndef ZPOS64_T
   #ifdef _WIN32

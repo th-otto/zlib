@@ -552,6 +552,14 @@ int main(argc, argv)
     uLong uncomprLen = comprLen;
     static const char* myVersion = ZLIB_VERSION;
 
+#ifdef ZLIB_SLB
+	long ret;
+	if ((ret = slb_zlib_open(NULL)) < 0) {
+        fprintf(stderr, "cannot load zlib.slb: %ld\n", ret);
+        exit(1);
+	}
+#endif
+
     if (zlibVersion()[0] != myVersion[0]) {
         fprintf(stderr, "incompatible zlib version\n");
         exit(1);

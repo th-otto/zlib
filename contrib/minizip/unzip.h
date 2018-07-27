@@ -59,6 +59,10 @@ extern "C" {
 #include "bzlib.h"
 #endif
 
+#if defined(ZLIB_COMPILATION) && defined(ZLIB_SLB)
+#include "zlibslb.h"
+#endif
+
 #define Z_BZIP2ED 12
 
 #if defined(STRICTUNZIP) || defined(STRICTZIPUNZIP)

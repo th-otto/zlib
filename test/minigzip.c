@@ -15,7 +15,6 @@
 
 /* @(#) $Id$ */
 
-#define ZLIB_COMPILATION
 #include "zlib.h"
 #include "zutil.h"
 #include <stdio.h>
@@ -552,6 +551,14 @@ int main(argc, argv)
     int uncompr = 0;
     gzFile file;
     char *bname, outmode[20];
+
+#ifdef ZLIB_SLB
+	long ret;
+	if ((ret = slb_zlib_open(NULL)) < 0) {
+        fprintf(stderr, "cannot load zlib.slb: %ld\n", ret);
+        exit(1);
+	}
+#endif
 
     strcpy(outmode, "wb6 ");
 

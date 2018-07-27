@@ -27,6 +27,7 @@ build
 *.trs
 *.gmo
 *.mo
+*.map
 lt-*.c
 stamp-*
 .stamp.*
@@ -61,6 +62,9 @@ minigzip64
 examplesh
 minigzipsh
 libz.so*
+zlib_vernum.h
+zlib_imp_[0-9]*.c
+foo.gz
 
 m4/amversion.m4
 m4/auxdir.m4
