@@ -58,7 +58,7 @@ static int get_cookie(long key, long *value)
 }
 
 
-#if defined(__MSHORT__) || defined(__PUREC__)
+#if defined(__MSHORT__) || defined(__PUREC__) || defined(__AHCC__)
 
 static void *_CDECL gcc_memset(void *s, z_int_t val, size_t len)
 {

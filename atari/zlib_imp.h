@@ -61,7 +61,9 @@ C_SYMBOL_NAME(name) ":\n"); \
 
 #endif /* __GNUC__ */
 
-#ifdef __PUREC__
+#if defined(__AHCC__)
+
+#elif defined(__PUREC__)
 
 static void *jmp_a0(void *) 0x4ed0;
 static long move_l_a7_d1(void *, long) 0x221f;

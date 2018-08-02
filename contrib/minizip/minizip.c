@@ -28,7 +28,7 @@
         #endif
 #endif
 
-#if defined(__APPLE__) || defined(__CYGWIN__) || defined(__MINT__) || defined(__PUREC__)
+#if defined(__APPLE__) || defined(__CYGWIN__) || defined(__MINT__) || defined(__PUREC__) || defined(__AHCC__)
 /*
  * In darwin and perhaps other BSD variants off_t is a 64 bit value, hence no need for specific 64 bit functions
  * Ditto cygwin.

@@ -35,7 +35,7 @@
 #  include <stddef.h>
 #endif
 
-#if (defined(__TURBOC__) && !defined(__PUREC__)) || defined(_MSC_VER) || defined(_WIN32)
+#if (defined(__TURBOC__) && !defined(__PUREC__) && !defined(__AHCC__)) || defined(_MSC_VER) || defined(_WIN32)
 #  include <io.h>
 #endif
 
@@ -81,7 +81,7 @@
 #  ifdef __TURBOC__
 #    define NO_vsnprintf
 #  endif
-#  if defined(__PUREC__) && __PUREC__ < 0x500
+#  if (defined(__PUREC__) && __PUREC__ < 0x500) || defined(__AHCC__)
 #    define NO_vsnprintf
 #    define NO_snprintf
 #  endif

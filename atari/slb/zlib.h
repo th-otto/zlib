@@ -15,7 +15,7 @@
 #include <zlib.h>
 #include <mint/slb.h>
 
-#ifdef __PUREC__
+#if defined(__PUREC__) || defined(__AHCC__)
 #undef _CDECL
 /* if you get a compile error here, you must turn off ANSI */
 #define _CDECL cdecl

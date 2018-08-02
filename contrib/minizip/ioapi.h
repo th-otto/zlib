@@ -102,8 +102,10 @@ typedef uint64_t ZPOS64_T;
 
 #if defined(_MSC_VER) || defined(__BORLANDC__)
 typedef unsigned __int64 ZPOS64_T;
+#elif defined(__GNUC__)
+__extension__ typedef unsigned long long ZPOS64_T;
 #else
-typedef unsigned long long int ZPOS64_T;
+typedef unsigned long ZPOS64_T;
 #endif
 #endif
 #endif

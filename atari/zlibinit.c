@@ -15,7 +15,7 @@
 #include <errno.h>
 #include "zlibstr.h"
 
-#if defined(__MSHORT__) || defined(__PUREC__)
+#if defined(__MSHORT__) || defined(__PUREC__) || defined(__AHCC__)
 # error "the zlib.slb must not be compiled with -mshort"
 #endif
 

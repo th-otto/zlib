@@ -471,7 +471,7 @@ local void cover_back(void)
 {
     int ret;
     z_stream strm;
-#ifdef __PUREC__
+#if defined(__PUREC__) || defined(__AHCC__)
 	static
 #endif
     unsigned char win[32768L];
