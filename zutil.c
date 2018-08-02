@@ -71,11 +71,6 @@ uLong ZEXPORT zlibCompileFlags()
 #endif
 #if defined(ZLIB_WINAPI)
     flags += 1 << 10;
-#elif defined(__mc68020__) || defined(__mc68030__) || defined(__mc68040__) || defined(__mc68060__) || defined(__mc68080__) || defined(__apollo__)
-    flags += 1 << 10;
-#endif
-#if defined(__mcoldfire__)
-    flags += 1 << 11;
 #endif
 #ifdef BUILDFIXED
     flags += 1 << 12;

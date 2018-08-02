@@ -30,7 +30,7 @@
  .dc.l (slh_fend-slh_functions)/4
 
 slh_functions:
-           .dc.l _wrap_zlib_set_imports
+           .dc.l _wrap_zlib_slb_control
            .dc.l _wrap_adler32
            .dc.l _wrap_compress
            .dc.l _wrap_crc32
@@ -235,7 +235,7 @@ slh_functions:
            .dc.l 0
            .dc.l 0
 slh_fend:
-           name_zlib_set_imports_str: .ascii "zlib_set_imports"
+           name_zlib_slb_control_str: .ascii "zlib_slb_control"
   .dc.b 0
            name_adler32_str: .ascii "adler32"
   .dc.b 0
@@ -568,7 +568,7 @@ slh_fend:
           
  .even
 _slh_names:
-           .dc.l name_zlib_set_imports_str
+           .dc.l name_zlib_slb_control_str
            .dc.l name_adler32_str
            .dc.l name_compress_str
            .dc.l name_crc32_str
@@ -768,11 +768,11 @@ _slh_names:
            .dc.l 0
            .dc.l 0
            .dc.l 0
-           _wrap_zlib_set_imports : move.l (a7)+,d0
+           _wrap_zlib_slb_control : move.l (a7)+,d0
   move.l (a7)+,a0
   addq.l #4,a7
   move.l d0,(a7)
-  jmp zlib_set_imports
+  jmp zlib_slb_control
            _wrap_adler32 : move.l (a7)+,d0
   move.l (a7)+,a0
   addq.l #4,a7

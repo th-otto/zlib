@@ -1186,9 +1186,6 @@ ZEXTERN uLong ZEXPORT zlibCompileFlags OF((void));
      10: ZLIB_WINAPI -- exported functions use the WINAPI calling convention
      11: 0 (reserved)
 
-     10: m68020++ -- atari specific
-     11: coldfire -- atari specific
-     
     One-time table building (smaller code, but not thread-safe if true):
      12: BUILDFIXED -- build static block decoding tables when needed
      13: DYNAMIC_CRC_TABLE -- build CRC calculation tables when needed

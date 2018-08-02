@@ -13,7 +13,7 @@
 #define LIBFUNC2(_fn, name, _nargs) LIBFUNC(_fn, name, _nargs)
 #endif
 
-	/*   0 */ LIBFUNC(0, zlib_set_imports, 1)
+	/*   0 */ LIBFUNC(0, zlib_slb_control, 2)
 	/*   1 */ LIBFUNC(1, adler32, 3)
 	/*   2 */ LIBFUNC(2, compress, 4)
 	/*   3 */ LIBFUNC(3, crc32, 3)

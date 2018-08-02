@@ -74,11 +74,11 @@ static void *move_4_a0_1(void *) 0x0004;
 static void *move_4_a0_2(void *) 0x2068;
 
 #define LIBFUNC(_fn, name, _nargs) \
-
 void name(void) \
 { \
 	jmp_a0(push_a1(move_4_a0_1(move_4_a0_2(push_a0(push_d0(push_d1(move_l_a7_a1(slb_zlib_get(), _fn), SLB_NARGS(_nargs)))))))); \
 }
+#define LIBFUNC2(_fn, name, _nargs) LIBFUNC(_fn, name, _nargs)
 
 #endif
 

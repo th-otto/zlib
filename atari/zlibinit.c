@@ -129,7 +129,8 @@ void zlib_close(BASEPAGE *bp)
  * get the function table pointer passed from the application.
  * Automatically done in slb_zlib_open()
  */
-long zlib_set_imports(struct _zlibslb_funcs *funcs)
+__attribute__((__noinline__))
+static long zlib_set_imports(struct _zlibslb_funcs *funcs)
 {
 	pid_t pid = slb_user();
 	struct per_proc *proc = get_proc(pid, pid);
@@ -145,7 +146,34 @@ long zlib_set_imports(struct _zlibslb_funcs *funcs)
 	proc->funcs = funcs;
 	return 0;
 }
-		
+
+
+__attribute__((__noinline__))
+static long slb_compile_flags(void)
+{
+	long flags = 0;
+#if defined(__mc68020__) || defined(__mc68030__) || defined(__mc68040__) || defined(__mc68060__) || defined(__mc68080__) || defined(__apollo__)
+    flags |= (1L << 16);
+#endif
+#if defined(__mcoldfire__)
+    flags |= (1L << 17);
+#endif
+	return flags;
+}
+
+
+long _CDECL zlib_slb_control(long fn, void *arg)
+{
+	switch ((int)fn)
+	{
+	case 0:
+		return slb_compile_flags();
+	case 1:
+		return zlib_set_imports(arg);
+	}
+	return -ENOSYS;
+}
+
 
 /*
  * just redefining memcpy is not enough;
@@ -155,6 +183,7 @@ void *(memcpy)(void *dest, const void *src, size_t len)
 {
 	return memcpy(dest, src, len);
 }
+
 
 /* same for strlen */
 size_t (strlen)(const char *str)

@@ -245,7 +245,7 @@ static z_int_t _CDECL get_errno(void)
 long slb_zlib_open(const char *slbpath)
 {
 	long ret;
-	uLong flags;
+	unsigned long flags;
 	long cpu;
 	
 	SLB *zlib = slb_zlib_get();
@@ -293,31 +293,19 @@ long slb_zlib_open(const char *slbpath)
 	ret = slb_load(SHAREDLIB, slbpath, ZLIB_VERNUM, &zlib->handle, &zlib->exec);
 	if (ret < 0)
 		return ret;
-	ret = zlib_set_imports(&zlibslb_funcs);
-	if (ret < 0)
-	{
-		slb_zlib_close();
-		return ret;
-	}
-	
+
 	/*
 	 * check compile flags; that function should be as simple as to just return a constant
 	 * and we can hopefully call it even on mismatched configurations
 	 */
-	flags = zlibCompileFlags();
-	/* basic types should be all 32-bit */
-	if ((flags & 0xff) != 0x55)
-	{
-		slb_zlib_close();
-		return -EINVAL;
-	}
+	flags = zlib_slb_control(0, 0);
 	get_cookie(C__CPU, &cpu);
 	if (cpu >= 20)
 	{
 		/* should be able to use a 000 library, anyways */
 	} else
 	{
-		if (flags & (1 << 10))
+		if (flags & (1L << 16))
 		{
 			/* cpu is not 020+, but library was compiled for it */
 			slb_zlib_close();
@@ -326,14 +314,21 @@ long slb_zlib_open(const char *slbpath)
 	}
 #if defined(__mcoldfire__)
 	/* if cpu is cf, but library was not compiled for it... */
-	if (!(flags & (1 << 11)) || cpu > 0)
+	if (!(flags & (1L << 17)) || cpu > 0)
 #else
 	/* if cpu is not cf, but library was compiled for it... */
-	if (flags & (1 << 11))
+	if (flags & (1L << 17))
 #endif
 	{
 		slb_zlib_close();
 		return -EINVAL;
+	}
+	
+	ret = zlib_slb_control(1, &zlibslb_funcs);
+	if (ret < 0)
+	{
+		slb_zlib_close();
+		return ret;
 	}
 	
 	return ret;

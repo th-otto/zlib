@@ -72,6 +72,6 @@ struct _zlibslb_funcs {
 	void *unused[33];
 };
 
-long _CDECL zlib_set_imports(struct _zlibslb_funcs *funcs);
+long _CDECL zlib_slb_control(long fn, void *arg);
 
 #endif
