@@ -101,7 +101,7 @@ local gzFile gz_open(path, fd, mode)
     gz_statep state;
     z_size_t len;
     int oflag;
-#ifdef O_CLOEXEC
+#if defined(O_CLOEXEC) && !defined(__MSHORT__) && !defined(__PUREC__)
     int cloexec = 0;
 #endif
 #ifdef O_EXCL
@@ -146,11 +146,11 @@ local gzFile gz_open(path, fd, mode)
                 return NULL;
             case 'b':       /* ignore -- will request binary anyway */
                 break;
-#ifdef O_CLOEXEC
             case 'e':
+#if defined(O_CLOEXEC) && !defined(__MSHORT__) && !defined(__PUREC__)
                 cloexec = 1;
-                break;
 #endif
+                break;
 #ifdef O_EXCL
             case 'x':
                 exclusive = 1;
@@ -219,13 +219,13 @@ local gzFile gz_open(path, fd, mode)
 
     /* compute the flags for open() */
     oflag =
-#if defined (O_LARGEFILE) && !defined(__MSHORT__)
+#if defined (O_LARGEFILE) && !defined(__MSHORT__) && !defined(__PUREC__)
         O_LARGEFILE |
 #endif
 #ifdef O_BINARY
         O_BINARY |
 #endif
-#ifdef O_CLOEXEC
+#if defined(O_CLOEXEC) && !defined(__MSHORT__) && !defined(__PUREC__)
         (cloexec ? O_CLOEXEC : 0) |
 #endif
         (state->mode == GZ_READ ?
@@ -312,7 +312,7 @@ gzFile ZEXPORT gzopen_w(path, mode)
 /* -- see zlib.h -- */
 int ZEXPORT gzbuffer(file, size)
     gzFile file;
-    unsigned size;
+    uInt size;
 {
     gz_statep state;
 

@@ -51,7 +51,7 @@
 
 #undef rand
 
-#include "zlibstruct.h"
+#include "zlibstr.h"
 
 struct _zlibslb_funcs *zlib_get_slb_funcs(void);
 
@@ -67,7 +67,7 @@ struct _zlibslb_funcs *zlib_get_slb_funcs(void);
 #define malloc zlib_get_slb_funcs()->p_malloc
 #define free zlib_get_slb_funcs()->p_free
 
-#define errno (*zlib_get_slb_funcs()->errno_location)
+#define errno (zlib_get_slb_funcs()->p_get_errno())
 #define strerror zlib_get_slb_funcs()->p_strerror
 
 #define open zlib_get_slb_funcs()->p_open

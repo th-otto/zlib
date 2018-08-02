@@ -380,7 +380,7 @@ local z_size_t gz_read(state, buf, len)
 int ZEXPORT gzread(file, buf, len)
     gzFile file;
     voidp buf;
-    unsigned len;
+    uInt len;
 {
     gz_statep state;
 

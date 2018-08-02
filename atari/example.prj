@@ -21,13 +21,13 @@ example.ttp
 .C[-S-]
 .C[-2-]
 .C[-8-]
-.C[-A]
+.C[-A-]
 
 .L [-S=65536] ; 64k stack
 
 =
 
-c:\pc\lib\cstartv.o
+cstartv.o
 ..\test\example.c
 zlib.prj
-c:\pc\lib\pcstdlib.lib
+pcstdlib.lib

@@ -62,8 +62,8 @@ minigzip64
 examplesh
 minigzipsh
 libz.so*
-zlib_vernum.h
-zlib_imp_[0-9]*.c
+zlibver.h
+zimp_[0-9]*.c
 foo.gz
 
 m4/amversion.m4

@@ -14,6 +14,10 @@
 #endif
 #include "dbgmem.h"
 
+#ifndef NO_DUMMY_DECL
+struct internal_state      {int dummy;}; /* for buggy compilers */
+#endif
+
 #if defined(VMS) || defined(RISCOS)
 #  define TESTFILE "foo-gz"
 #else
@@ -90,7 +94,7 @@ void test_compress(compr, comprLen, uncompr, uncomprLen)
     Byte *compr, *uncompr;
     uLong comprLen, uncomprLen;
 {
-    int err;
+    z_int_t err;
     uLong len = (uLong)strlen(hello)+1;
 
     err = compress(compr, &comprLen, (const Bytef*)hello, len);
@@ -120,7 +124,7 @@ void test_gzio(fname, uncompr, uncomprLen)
 #ifdef NO_GZCOMPRESS
     fprintf(stderr, "NO_GZCOMPRESS -- gz* functions cannot compress\n");
 #else
-    int err;
+    z_int_t err;
     int len = (int)strlen(hello)+1;
     gzFile file;
     z_off_t pos;
@@ -149,7 +153,7 @@ void test_gzio(fname, uncompr, uncomprLen)
     }
     strcpy((char*)uncompr, "garbage");
 
-    if (gzread(file, uncompr, (unsigned)uncomprLen) != len) {
+    if (gzread(file, uncompr, (uInt)uncomprLen) != len) {
         fprintf(stderr, "gzread err: %s\n", gzerror(file, &err));
         exit(1);
     }
@@ -177,7 +181,7 @@ void test_gzio(fname, uncompr, uncomprLen)
         exit(1);
     }
 
-    gzgets(file, (char*)uncompr, (int)uncomprLen);
+    gzgets(file, (char*)uncompr, (z_int_t)uncomprLen);
     if (strlen((char*)uncompr) != 7) { /* " hello!" */
         fprintf(stderr, "gzgets err after gzseek: %s\n", gzerror(file, &err));
         exit(1);
@@ -203,7 +207,7 @@ void test_deflate(compr, comprLen)
     uLong comprLen;
 {
     z_stream c_stream; /* compression stream */
-    int err;
+    z_int_t err;
     uLong len = (uLong)strlen(hello)+1;
 
     c_stream.zalloc = zalloc;
@@ -240,7 +244,7 @@ void test_inflate(compr, comprLen, uncompr, uncomprLen)
     Byte *compr, *uncompr;
     uLong comprLen, uncomprLen;
 {
-    int err;
+    z_int_t err;
     z_stream d_stream; /* decompression stream */
 
     strcpy((char*)uncompr, "garbage");
@@ -282,7 +286,7 @@ void test_large_deflate(compr, comprLen, uncompr, uncomprLen)
     uLong comprLen, uncomprLen;
 {
     z_stream c_stream; /* compression stream */
-    int err;
+    z_int_t err;
 
     c_stream.zalloc = zalloc;
     c_stream.zfree = zfree;
@@ -336,7 +340,7 @@ void test_large_inflate(compr, comprLen, uncompr, uncomprLen)
     Byte *compr, *uncompr;
     uLong comprLen, uncomprLen;
 {
-    int err;
+    z_int_t err;
     z_stream d_stream; /* decompression stream */
 
     strcpy((char*)uncompr, "garbage");
@@ -378,7 +382,7 @@ void test_flush(compr, comprLen)
     uLong *comprLen;
 {
     z_stream c_stream; /* compression stream */
-    int err;
+    z_int_t err;
     uInt len = (uInt)strlen(hello)+1;
 
     c_stream.zalloc = zalloc;
@@ -415,7 +419,7 @@ void test_sync(compr, comprLen, uncompr, uncomprLen)
     Byte *compr, *uncompr;
     uLong comprLen, uncomprLen;
 {
-    int err;
+    z_int_t err;
     z_stream d_stream; /* decompression stream */
 
     strcpy((char*)uncompr, "garbage");
@@ -460,7 +464,7 @@ void test_dict_deflate(compr, comprLen)
     uLong comprLen;
 {
     z_stream c_stream; /* compression stream */
-    int err;
+    z_int_t err;
 
     c_stream.zalloc = zalloc;
     c_stream.zfree = zfree;
@@ -470,7 +474,7 @@ void test_dict_deflate(compr, comprLen)
     CHECK_ERR(err, "deflateInit");
 
     err = deflateSetDictionary(&c_stream,
-                (const Bytef*)dictionary, (int)sizeof(dictionary));
+                (const Bytef*)dictionary, (z_int_t)sizeof(dictionary));
     CHECK_ERR(err, "deflateSetDictionary");
 
     dictId = c_stream.adler;
@@ -496,7 +500,7 @@ void test_dict_inflate(compr, comprLen, uncompr, uncomprLen)
     Byte *compr, *uncompr;
     uLong comprLen, uncomprLen;
 {
-    int err;
+    z_int_t err;
     z_stream d_stream; /* decompression stream */
 
     strcpy((char*)uncompr, "garbage");
@@ -523,7 +527,7 @@ void test_dict_inflate(compr, comprLen, uncompr, uncomprLen)
                 exit(1);
             }
             err = inflateSetDictionary(&d_stream, (const Bytef*)dictionary,
-                                       (int)sizeof(dictionary));
+                                       (z_int_t)sizeof(dictionary));
         }
         CHECK_ERR(err, "inflate with dict");
     }
@@ -607,5 +611,6 @@ int main(argc, argv)
     z_free(compr);
     z_free(uncompr);
 
+    gztell64(0);
     return 0;
 }

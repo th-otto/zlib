@@ -1,7 +1,9 @@
-makecrc.ttp
+examples.tos
 
 .C[-I..]
 .C[-Ic:\pc\include]
+.C[-DZLIB_SLB=1]
+.C[-D_LARGEFILE64_SOURCE=1]
 
 .C[-L40]
 
@@ -28,5 +30,7 @@ makecrc.ttp
 =
 
 cstartv.o
-..\makecrc.c [-W-rch]
+..\test\example.c
+zlibslb.prj
 pcstdlib.lib
+pctoslib.lib

@@ -526,7 +526,7 @@ int ZEXPORT deflateSetHeader (strm, head)
 
 /* ========================================================================= */
 int ZEXPORT deflatePending (strm, pending, bits)
-    unsigned *pending;
+    uInt *pending;
     int *bits;
     z_streamp strm;
 {

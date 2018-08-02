@@ -15,8 +15,10 @@
 #include <zlib.h>
 #include <mint/slb.h>
 
-#ifndef _CDECL
-#define _CDECL
+#ifdef __PUREC__
+#undef _CDECL
+/* if you get a compile error here, you must turn off ANSI */
+#define _CDECL cdecl
 #endif
 
 #ifdef __cplusplus

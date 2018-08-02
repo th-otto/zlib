@@ -21,7 +21,7 @@ BEGIN {
 
 {
 	if (match($0, /^.*LIBFUNC.*\(([0-9]+).*$/, a)) {
-		file = "zlib_imp_" a[1] ".c";
+		file = "zimp_" a[1] ".c";
 		print "#include \"zlib_imp.h\"" > file;
 		if (inif == 1)
 			print ifdef > file;

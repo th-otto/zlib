@@ -34,6 +34,7 @@ SHAREDTARGET=$(SHAREDLIBV)
 LIBS=$(STATICLIB) $(SHAREDTARGET)
 
 
+CPP=$(CC) -E -P
 AR=$(CROSS_PREFIX)ar
 ARFLAGS=rcs
 RANLIB=$(CROSS_PREFIX)ranlib
@@ -72,149 +73,149 @@ OBJS = $(OBJC)
 PIC_OBJS = $(PIC_OBJC)
 
 GEN_IMP_OBJS = \
-	zlib_imp_0.o \
-	zlib_imp_1.o \
-	zlib_imp_2.o \
-	zlib_imp_3.o \
-	zlib_imp_4.o \
-	zlib_imp_5.o \
-	zlib_imp_6.o \
-	zlib_imp_7.o \
-	zlib_imp_8.o \
-	zlib_imp_9.o \
-	zlib_imp_10.o \
-	zlib_imp_11.o \
-	zlib_imp_12.o \
-	zlib_imp_13.o \
-	zlib_imp_14.o \
-	zlib_imp_15.o \
-	zlib_imp_16.o \
-	zlib_imp_17.o \
-	zlib_imp_18.o \
-	zlib_imp_19.o \
-	zlib_imp_20.o \
-	zlib_imp_21.o \
-	zlib_imp_22.o \
-	zlib_imp_23.o \
-	zlib_imp_24.o \
-	zlib_imp_25.o \
-	zlib_imp_26.o \
-	zlib_imp_27.o \
-	zlib_imp_28.o \
-	zlib_imp_29.o \
-	zlib_imp_30.o \
-	zlib_imp_31.o \
-	zlib_imp_32.o \
-	zlib_imp_33.o \
-	zlib_imp_34.o \
-	zlib_imp_35.o \
-	zlib_imp_36.o \
-	zlib_imp_37.o \
-	zlib_imp_38.o \
-	zlib_imp_39.o \
-	zlib_imp_40.o \
-	zlib_imp_41.o \
-	zlib_imp_42.o \
-	zlib_imp_43.o \
-	zlib_imp_44.o \
-	zlib_imp_45.o \
-	zlib_imp_46.o \
-	zlib_imp_47.o \
-	zlib_imp_48.o \
-	zlib_imp_49.o \
-	zlib_imp_50.o \
-	zlib_imp_51.o \
-	zlib_imp_52.o \
+	zimp_0.o \
+	zimp_1.o \
+	zimp_2.o \
+	zimp_3.o \
+	zimp_4.o \
+	zimp_5.o \
+	zimp_6.o \
+	zimp_7.o \
+	zimp_8.o \
+	zimp_9.o \
+	zimp_10.o \
+	zimp_11.o \
+	zimp_12.o \
+	zimp_13.o \
+	zimp_14.o \
+	zimp_15.o \
+	zimp_16.o \
+	zimp_17.o \
+	zimp_18.o \
+	zimp_19.o \
+	zimp_20.o \
+	zimp_21.o \
+	zimp_22.o \
+	zimp_23.o \
+	zimp_24.o \
+	zimp_25.o \
+	zimp_26.o \
+	zimp_27.o \
+	zimp_28.o \
+	zimp_29.o \
+	zimp_30.o \
+	zimp_31.o \
+	zimp_32.o \
+	zimp_33.o \
+	zimp_34.o \
+	zimp_35.o \
+	zimp_36.o \
+	zimp_37.o \
+	zimp_38.o \
+	zimp_39.o \
+	zimp_40.o \
+	zimp_41.o \
+	zimp_42.o \
+	zimp_43.o \
+	zimp_44.o \
+	zimp_45.o \
+	zimp_46.o \
+	zimp_47.o \
+	zimp_48.o \
+	zimp_49.o \
+	zimp_50.o \
+	zimp_51.o \
+	zimp_52.o \
 	\
-	zlib_imp_61.o \
-	zlib_imp_62.o \
-	zlib_imp_63.o \
-	zlib_imp_64.o \
-	zlib_imp_65.o \
-	zlib_imp_66.o \
-	zlib_imp_67.o \
-	zlib_imp_68.o \
-	zlib_imp_69.o \
-	zlib_imp_70.o \
-	zlib_imp_71.o \
-	zlib_imp_72.o \
-	zlib_imp_73.o \
-	zlib_imp_74.o \
-	zlib_imp_75.o \
-	zlib_imp_76.o \
-	zlib_imp_77.o \
-	zlib_imp_78.o \
-	zlib_imp_79.o \
-	zlib_imp_80.o \
-	zlib_imp_81.o \
-	zlib_imp_82.o \
-	zlib_imp_83.o \
-	zlib_imp_84.o \
+	zimp_61.o \
+	zimp_62.o \
+	zimp_63.o \
+	zimp_64.o \
+	zimp_65.o \
+	zimp_66.o \
+	zimp_67.o \
+	zimp_68.o \
+	zimp_69.o \
+	zimp_70.o \
+	zimp_71.o \
+	zimp_72.o \
+	zimp_73.o \
+	zimp_74.o \
+	zimp_75.o \
+	zimp_76.o \
+	zimp_77.o \
+	zimp_78.o \
+	zimp_79.o \
+	zimp_80.o \
+	zimp_81.o \
+	zimp_82.o \
+	zimp_83.o \
+	zimp_84.o \
 	\
-	zlib_imp_86.o \
-	zlib_imp_87.o \
-	zlib_imp_88.o \
-	zlib_imp_89.o \
+	zimp_86.o \
+	zimp_87.o \
+	zimp_88.o \
+	zimp_89.o \
 	\
-	zlib_imp_100.o \
-	zlib_imp_101.o \
+	zimp_100.o \
+	zimp_101.o \
 	\
-	zlib_imp_120.o \
-	zlib_imp_121.o \
-	zlib_imp_122.o \
+	zimp_120.o \
+	zimp_121.o \
+	zimp_122.o \
 	\
-	zlib_imp_124.o \
-	zlib_imp_125.o \
-	zlib_imp_126.o \
-	zlib_imp_127.o \
-	zlib_imp_128.o \
+	zimp_124.o \
+	zimp_125.o \
+	zimp_126.o \
+	zimp_127.o \
+	zimp_128.o \
 	\
-	zlib_imp_130.o \
-	zlib_imp_131.o \
-	zlib_imp_132.o \
-	zlib_imp_133.o \
-	zlib_imp_134.o \
-	zlib_imp_135.o \
-	zlib_imp_136.o \
+	zimp_130.o \
+	zimp_131.o \
+	zimp_132.o \
+	zimp_133.o \
+	zimp_134.o \
+	zimp_135.o \
+	zimp_136.o \
 	\
-	zlib_imp_140.o \
-	zlib_imp_141.o \
-	zlib_imp_142.o \
-	zlib_imp_143.o \
-	zlib_imp_144.o \
-	zlib_imp_145.o \
-	zlib_imp_146.o \
-	zlib_imp_147.o \
-	zlib_imp_148.o \
-	zlib_imp_149.o \
-	zlib_imp_150.o \
-	zlib_imp_151.o \
-	zlib_imp_152.o \
-	zlib_imp_153.o \
-	zlib_imp_154.o \
+	zimp_140.o \
+	zimp_141.o \
+	zimp_142.o \
+	zimp_143.o \
+	zimp_144.o \
+	zimp_145.o \
+	zimp_146.o \
+	zimp_147.o \
+	zimp_148.o \
+	zimp_149.o \
+	zimp_150.o \
+	zimp_151.o \
+	zimp_152.o \
+	zimp_153.o \
+	zimp_154.o \
 	\
-	zlib_imp_156.o \
-	zlib_imp_157.o \
-	zlib_imp_158.o \
-	zlib_imp_159.o \
-	zlib_imp_160.o \
-	zlib_imp_161.o \
+	zimp_156.o \
+	zimp_157.o \
+	zimp_158.o \
+	zimp_159.o \
+	zimp_160.o \
+	zimp_161.o \
 	\
-	zlib_imp_163.o \
-	zlib_imp_164.o \
+	zimp_163.o \
+	zimp_164.o \
 	\
-	zlib_imp_166.o \
-	zlib_imp_167.o \
-	zlib_imp_168.o \
-	zlib_imp_169.o \
-	zlib_imp_170.o \
-	zlib_imp_171.o \
-	zlib_imp_172.o \
-	zlib_imp_173.o \
-	zlib_imp_174.o \
-	zlib_imp_175.o \
+	zimp_166.o \
+	zimp_167.o \
+	zimp_168.o \
+	zimp_169.o \
+	zimp_170.o \
+	zimp_171.o \
+	zimp_172.o \
+	zimp_173.o \
+	zimp_174.o \
+	zimp_175.o \
 	$(empty)
-IMP_OBJS = zlib_imp_ptr.o zlib_imp_open.o \
+IMP_OBJS = zimpptr.o zimpopen.o slbload.o slbexec.o \
 	$(GEN_IMP_OBJS)
 
 all: static shared all64
@@ -223,8 +224,8 @@ static: $(STATICLIB) example$(EXE) minigzip$(EXE)
 
 shared: $(SHAREDLIB) $(GEN_IMP_OBJS:.o=.c) $(IMPORTLIB) examplesh$(EXE) minigzipsh$(EXE)
 
-$(GEN_IMP_OBJS:.o=.c): genimp.awk zlib_exports.h
-	$(AWK) -f ./genimp.awk zlib_exports.h
+$(GEN_IMP_OBJS:.o=.c): genimp.awk exports.h
+	$(AWK) -f ./genimp.awk exports.h
 
 all64: example64$(EXE) minigzip64$(EXE)
 
@@ -278,7 +279,7 @@ $(STATICLIB): $(OBJS)
 	$(RM) $@
 	$(AR) $(ARFLAGS) $@ $^
 
-zlib_imp_open.o: zlibstruct.h
+zimpopen.o: zlibstr.h
 
 $(IMPORTLIB): $(IMP_OBJS)
 	$(RM) $@
@@ -369,10 +370,14 @@ unzip.o: $(SRCDIR)contrib/minizip/unzip.c
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c -o $@ $<
 
 
+slbexec.o: slbexec.s
+	$(CC) $(CFLAGS) -Wa,--mri $(CPPFLAGS) -c -o $@ $<
+
 
 header.lo: header.S
 	$(CC) $(SFLAGS) $(CPPFLAGS) -c -o $@ $<
-zlib_vernum.h: $(SRCDIR)zlib.h
+
+zlibver.h: $(SRCDIR)zlib.h
 	grep ZLIB_VERNUM $< > $@
 
 zlibinit.lo: zlibinit.c
@@ -546,10 +551,13 @@ distclean: clean zconf docs
 	printf '\ndistclean:\n\tmake -f Makefile.in distclean\n' >> Makefile ; \
 	touch -r $(SRCDIR)Makefile.in Makefile ; fi
 	@if [ ! -f zlib.3 ]; then rm -f zlib.3.pdf ; fi
-	rm -f zlib_vernum.h
+	rm -f zlibver.h
 
 tags:
 	etags $(SRCDIR)*.[ch]
+
+headerpc.s: header.S exports.h symbols.h zlibver.h Makefile
+	$(CPP) $(CPPFLAGS) -U__USER_LABEL_PREFIX__ -D__USER_LABEL_PREFIX__= $< | sed -e 's/;/\n /g' -e 's/%//g' -e 's/jbra/jmp/' > $@
 
 adler32.o zutil.o: $(SRCDIR)zutil.h $(SRCDIR)zlib.h $(SRCDIR)zconf.h
 gzclose.o gzlib.o gzread.o gzwrite.o: $(SRCDIR)zlib.h $(SRCDIR)zconf.h $(SRCDIR)gzguts.h
@@ -561,15 +569,15 @@ inffast.o: $(SRCDIR)zutil.h $(SRCDIR)zlib.h $(SRCDIR)zconf.h $(SRCDIR)inftrees.h
 inftrees.o: $(SRCDIR)zutil.h $(SRCDIR)zlib.h $(SRCDIR)zconf.h $(SRCDIR)inftrees.h
 trees.o: $(SRCDIR)deflate.h $(SRCDIR)zutil.h $(SRCDIR)zlib.h $(SRCDIR)zconf.h $(SRCDIR)trees.h
 
-adler32.lo zutil.lo: $(SRCDIR)zutil.h $(SRCDIR)zlib.h $(SRCDIR)zconf.h zlibslb.h zlibstruct.h
-gzclose.lo gzlib.lo gzread.lo gzwrite.lo: $(SRCDIR)zlib.h $(SRCDIR)zconf.h $(SRCDIR)gzguts.h zlibslb.h zlibstruct.h
-compress.lo example.lo minigzip.lo uncompr.lo: $(SRCDIR)zlib.h $(SRCDIR)zconf.h zlibslb.h zlibstruct.h
-crc32.lo: $(SRCDIR)zutil.h $(SRCDIR)zlib.h $(SRCDIR)zconf.h $(SRCDIR)crc32.h zlibslb.h zlibstruct.h
-deflate.lo: $(SRCDIR)deflate.h $(SRCDIR)zutil.h $(SRCDIR)zlib.h $(SRCDIR)zconf.h zlibslb.h zlibstruct.h
-infback.lo inflate.lo: $(SRCDIR)zutil.h $(SRCDIR)zlib.h $(SRCDIR)zconf.h $(SRCDIR)inftrees.h $(SRCDIR)inflate.h $(SRCDIR)inffast.h $(SRCDIR)inffixed.h zlibslb.h zlibstruct.h
-inffast.lo: $(SRCDIR)zutil.h $(SRCDIR)zlib.h $(SRCDIR)zconf.h $(SRCDIR)inftrees.h $(SRCDIR)inflate.h $(SRCDIR)inffast.h zlibslb.h zlibstruct.h
-inftrees.lo: $(SRCDIR)zutil.h $(SRCDIR)zlib.h $(SRCDIR)zconf.h $(SRCDIR)inftrees.h zlibslb.h zlibstruct.h
-trees.lo: $(SRCDIR)deflate.h $(SRCDIR)zutil.h $(SRCDIR)zlib.h $(SRCDIR)zconf.h $(SRCDIR)trees.h zlibslb.h zlibstruct.h
+adler32.lo zutil.lo: $(SRCDIR)zutil.h $(SRCDIR)zlib.h $(SRCDIR)zconf.h zlibslb.h zlibstr.h
+gzclose.lo gzlib.lo gzread.lo gzwrite.lo: $(SRCDIR)zlib.h $(SRCDIR)zconf.h $(SRCDIR)gzguts.h zlibslb.h zlibstr.h
+compress.lo example.lo minigzip.lo uncompr.lo: $(SRCDIR)zlib.h $(SRCDIR)zconf.h zlibslb.h zlibstr.h
+crc32.lo: $(SRCDIR)zutil.h $(SRCDIR)zlib.h $(SRCDIR)zconf.h $(SRCDIR)crc32.h zlibslb.h zlibstr.h
+deflate.lo: $(SRCDIR)deflate.h $(SRCDIR)zutil.h $(SRCDIR)zlib.h $(SRCDIR)zconf.h zlibslb.h zlibstr.h
+infback.lo inflate.lo: $(SRCDIR)zutil.h $(SRCDIR)zlib.h $(SRCDIR)zconf.h $(SRCDIR)inftrees.h $(SRCDIR)inflate.h $(SRCDIR)inffast.h $(SRCDIR)inffixed.h zlibslb.h zlibstr.h
+inffast.lo: $(SRCDIR)zutil.h $(SRCDIR)zlib.h $(SRCDIR)zconf.h $(SRCDIR)inftrees.h $(SRCDIR)inflate.h $(SRCDIR)inffast.h zlibslb.h zlibstr.h
+inftrees.lo: $(SRCDIR)zutil.h $(SRCDIR)zlib.h $(SRCDIR)zconf.h $(SRCDIR)inftrees.h zlibslb.h zlibstr.h
+trees.lo: $(SRCDIR)deflate.h $(SRCDIR)zutil.h $(SRCDIR)zlib.h $(SRCDIR)zconf.h $(SRCDIR)trees.h zlibslb.h zlibstr.h
 
-zlibinit.lo: zlib_exports.h zlibslb.h zlibstruct.h
-header.lo: zlib_exports.h symbols.h zlib_vernum.h
+zlibinit.lo: exports.h zlibslb.h zlibstr.h
+header.lo: exports.h symbols.h zlibver.h

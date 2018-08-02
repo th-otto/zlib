@@ -17,10 +17,18 @@
 #include "zlib.h"
 #include "ioapi.h"
 
+#ifndef NO_DUMMY_DECL
+struct internal_state      {int dummy;}; /* for buggy compilers */
+#endif
+
 #ifdef _WIN32 /* whole file */
 
 #include "iowin32.h"
 #include "dbgmem.h"
+
+#ifndef NO_DUMMY_DECL
+struct internal_state      {int dummy;}; /* for buggy compilers */
+#endif
 
 #ifndef INVALID_HANDLE_VALUE
 #define INVALID_HANDLE_VALUE (0xFFFFFFFF)
@@ -31,7 +39,7 @@
 #endif
 
 
-// see Include/shared/winapifamily.h in the Windows Kit
+/* see Include/shared/winapifamily.h in the Windows Kit */
 #if defined(WINAPI_FAMILY_PARTITION) && (!(defined(IOWIN32_USING_WINRT_API)))
 #if WINAPI_FAMILY_ONE_PARTITION(WINAPI_FAMILY, WINAPI_PARTITION_APP)
 #define IOWIN32_USING_WINRT_API 1

@@ -23,7 +23,7 @@ c:\pc\lib\zlib.lib
 .C[-S-]
 .C[-2-]
 .C[-8-]
-.C[-A]
+.C[-A-]
 
 .L [-J]
 
@@ -44,3 +44,8 @@ c:\pc\lib\zlib.lib
 ..\gzlib.c
 ..\gzread.c
 ..\gzwrite.c
+
+..\contrib\minizip\ioapi.c
+..\contrib\minizip\iowin32.c
+..\contrib\minizip\zip.c
+..\contrib\minizip\unzip.c

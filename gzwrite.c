@@ -251,7 +251,7 @@ local z_size_t gz_write(state, buf, len)
 int ZEXPORT gzwrite(file, buf, len)
     gzFile file;
     voidpc buf;
-    unsigned len;
+    uInt len;
 {
     gz_statep state;
 

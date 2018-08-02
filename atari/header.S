@@ -7,7 +7,7 @@
 	.text
 
 #include "symbols.h"
-#include "zlib_vernum.h"
+#include "zlibver.h"
 
 #define WITH_FUNCNAMES 1
 
@@ -35,7 +35,7 @@ slh_functions:
  */
 #define LIBFUNC(fn, name, nargs) .dc.l _wrap_ ## name
 #define NOFUNC .dc.l 0
-#include "zlib_exports.h"
+#include "exports.h"
 slh_fend:
 
 
@@ -43,9 +43,9 @@ slh_fend:
 /*
  * create the function names
  */
-#define LIBFUNC(fn, name, nargs) name_##name##_str: .asciz #name
+#define LIBFUNC(fn, name, nargs) name_##name##_str: .ascii #name; .dc.b 0
 #define NOFUNC
-#include "zlib_exports.h"
+#include "exports.h"
 	.even
 
 /*
@@ -54,7 +54,7 @@ slh_fend:
 _slh_names:
 #define LIBFUNC(fn, name, nargs) .dc.l name_##name##_str
 #define NOFUNC .dc.l 0
-#include "zlib_exports.h"
+#include "exports.h"
 
 #endif
 
@@ -69,7 +69,8 @@ _wrap_ ## name : \
 	move.l %d0,(%a7);  /* put return pc, overwriting #arguments */ \
 	jbra C_SYMBOL_NAME(name)
 #define NOFUNC
-#include "zlib_exports.h"
+#include "exports.h"
 
-_slbname:	.asciz	SHAREDLIB
+_slbname:	.ascii	SHAREDLIB
+	.dc.b 0
 	.even

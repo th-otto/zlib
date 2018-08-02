@@ -1,0 +1,177 @@
+c:\pc\lib\zlibslb.lib
+
+.C[-I..]
+.C[-Ic:\pc\include]
+
+.C[-DSHAREDLIB="zlib.slb"]
+.C[-DZLIB_SLB=1]
+.C[-D_LARGEFILE64_SOURCE=1]
+
+.C[-L40]
+
+.C[-K]
+.C[-P]
+.C[-R-]
+.C[-J-]
+.C[-G-]
+.C[-Z-]
+.C[-C-]
+.C[-T-]
+.C[-B-]
+.C[-X-]
+.C[-H-]
+.C[-Q-]
+.C[-M]
+.C[-S-]
+.C[-2-]
+.C[-8-]
+.C[-A-]
+
+.L [-J]
+
+=
+zimpptr.c
+zimpopen.c
+slbload.c
+slbexec.s
+zimp_0.c ; zlib_set_imports
+zimp_1.c ; adler32
+zimp_2.c ; compress
+zimp_3.c ; crc32
+zimp_4.c ; deflate
+zimp_5.c ; deflateCopy
+zimp_6.c ; deflateEnd
+zimp_7.c ; deflateInit2_
+zimp_8.c ; deflateInit_
+zimp_9.c ; deflateParams
+zimp_10.c ; deflateReset
+zimp_11.c ; deflateSetDictionary
+zimp_12.c ; gzclose
+zimp_13.c ; gzdopen
+zimp_14.c ; gzerror
+zimp_15.c ; gzflush
+zimp_16.c ; gzopen
+zimp_17.c ; gzread
+zimp_18.c ; gzwrite
+zimp_19.c ; inflate
+zimp_20.c ; inflateEnd
+zimp_21.c ; inflateInit2_
+zimp_22.c ; inflateInit_
+zimp_23.c ; inflateReset
+zimp_24.c ; inflateSetDictionary
+zimp_25.c ; inflateSync
+zimp_26.c ; uncompress
+zimp_27.c ; zlibVersion
+zimp_28.c ; gzprintf
+zimp_29.c ; gzputc
+zimp_30.c ; gzgetc
+zimp_31.c ; gzseek
+zimp_32.c ; gzrewind
+zimp_33.c ; gztell
+zimp_34.c ; gzeof
+zimp_35.c ; gzsetparams
+zimp_36.c ; zError
+zimp_37.c ; inflateSyncPoint
+zimp_38.c ; get_crc_table
+zimp_39.c ; compress2
+zimp_40.c ; gzputs
+zimp_41.c ; gzgets
+zimp_42.c ; inflateCopy
+zimp_43.c ; inflateBackInit_
+zimp_44.c ; inflateBack
+zimp_45.c ; inflateBackEnd
+zimp_46.c ; compressBound
+zimp_47.c ; deflateBound
+zimp_48.c ; gzclearerr
+zimp_49.c ; gzungetc
+zimp_50.c ; zlibCompileFlags
+zimp_51.c ; deflatePrime
+zimp_52.c ; deflatePending
+
+zimp_61.c ; unzOpen
+zimp_62.c ; unzClose
+zimp_63.c ; unzGetGlobalInfo
+zimp_64.c ; unzGetCurrentFileInfo
+zimp_65.c ; unzGoToFirstFile
+zimp_66.c ; unzGoToNextFile
+zimp_67.c ; unzOpenCurrentFile
+zimp_68.c ; unzReadCurrentFile
+zimp_69.c ; unzOpenCurrentFile3
+zimp_70.c ; unztell
+zimp_71.c ; unzeof
+zimp_72.c ; unzCloseCurrentFile
+zimp_73.c ; unzGetGlobalComment
+zimp_74.c ; unzStringFileNameCompare
+zimp_75.c ; unzLocateFile
+zimp_76.c ; unzGetLocalExtrafield
+zimp_77.c ; unzOpen2
+zimp_78.c ; unzOpenCurrentFile2
+zimp_79.c ; unzOpenCurrentFilePassword
+zimp_80.c ; zipOpen
+zimp_81.c ; zipOpenNewFileInZip
+zimp_82.c ; zipWriteInFileInZip
+zimp_83.c ; zipCloseFileInZip
+zimp_84.c ; zipClose
+
+zimp_86.c ; zipOpenNewFileInZip2
+zimp_87.c ; zipCloseFileInZipRaw
+zimp_88.c ; zipOpen2
+zimp_89.c ; zipOpenNewFileInZip3
+
+zimp_100.c ; unzGetFilePos
+zimp_101.c ; unzGoToFilePos
+
+zimp_120.c ; unzOpen64
+zimp_121.c ; unzOpen2_64
+zimp_122.c ; unzGetGlobalInfo64
+
+zimp_124.c ; unzGetCurrentFileInfo64
+zimp_125.c ; unzGetCurrentFileZStreamPos64
+zimp_126.c ; unztell64
+zimp_127.c ; unzGetFilePos64
+zimp_128.c ; unzGoToFilePos64
+
+zimp_130.c ; zipOpen64
+zimp_131.c ; zipOpen2_64
+zimp_132.c ; zipOpenNewFileInZip64
+zimp_133.c ; zipOpenNewFileInZip2_64
+zimp_134.c ; zipOpenNewFileInZip3_64
+zimp_135.c ; zipOpenNewFileInZip4_64
+zimp_136.c ; zipCloseFileInZipRaw64
+
+zimp_140.c ; adler32_combine
+zimp_141.c ; adler32_combine64
+zimp_142.c ; crc32_combine
+zimp_143.c ; crc32_combine64
+zimp_144.c ; deflateSetHeader
+zimp_145.c ; deflateTune
+zimp_146.c ; gzbuffer
+zimp_147.c ; gzclose_r
+zimp_148.c ; gzclose_w
+zimp_149.c ; gzdirect
+zimp_150.c ; gzoffset
+zimp_151.c ; gzoffset64
+zimp_152.c ; gzopen64
+zimp_153.c ; gzseek64
+zimp_154.c ; gztell64
+
+zimp_156.c ; inflateGetHeader
+zimp_157.c ; inflateMark
+zimp_158.c ; inflatePrime
+zimp_159.c ; inflateReset2
+zimp_160.c ; inflateUndermine
+zimp_161.c ; gzgetc_
+
+zimp_163.c ; inflateResetKeep
+zimp_164.c ; deflateResetKeep
+
+zimp_166.c ; inflateGetDictionary
+zimp_167.c ; gzvprintf
+zimp_168.c ; inflateCodesUsed
+zimp_169.c ; inflateValidate
+zimp_170.c ; uncompress2
+zimp_171.c ; gzfread
+zimp_172.c ; gzfwrite
+zimp_173.c ; deflateGetDictionary
+zimp_174.c ; adler32_z
+zimp_175.c ; crc32_z

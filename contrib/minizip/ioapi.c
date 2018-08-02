@@ -15,9 +15,11 @@
         #define _CRT_SECURE_NO_WARNINGS
 #endif
 
-#if defined(__APPLE__) || defined(IOAPI_NO_64) || defined(__CYGWIN__) || defined(__MINT__)
-// In darwin and perhaps other BSD variants off_t is a 64 bit value, hence no need for specific 64 bit functions
-// Ditto cygwin.
+#if defined(__APPLE__) || defined(IOAPI_NO_64) || defined(__CYGWIN__) || defined(__MINT__) || defined(__PUREC__)
+/*
+ * In darwin and perhaps other BSD variants off_t is a 64 bit value, hence no need for specific 64 bit functions
+ * Ditto cygwin.
+ */
 #define FOPEN_FUNC(filename, mode) fopen(filename, mode)
 #define FTELLO_FUNC(stream) ftello(stream)
 #define FSEEKO_FUNC(stream, offset, origin) fseeko(stream, offset, origin)
@@ -29,6 +31,11 @@
 
 
 #include "ioapi.h"
+
+#ifndef NO_DUMMY_DECL
+struct internal_state      {int dummy;}; /* for buggy compilers */
+#endif
+
 
 voidpf call_zopen64 (const zlib_filefunc64_32_def* pfilefunc,const void*filename,int mode)
 {
@@ -98,6 +105,7 @@ static voidpf ZCALLBACK fopen_file_func (voidpf opaque, const char* filename, in
 {
     FILE* file = NULL;
     const char* mode_fopen = NULL;
+    (void)opaque;
     if ((mode & ZLIB_FILEFUNC_MODE_READWRITEFILTER)==ZLIB_FILEFUNC_MODE_READ)
         mode_fopen = "rb";
     else
@@ -116,6 +124,7 @@ static voidpf ZCALLBACK fopen64_file_func (voidpf opaque, const void* filename, 
 {
     FILE* file = NULL;
     const char* mode_fopen = NULL;
+    (void)opaque;
     if ((mode & ZLIB_FILEFUNC_MODE_READWRITEFILTER)==ZLIB_FILEFUNC_MODE_READ)
         mode_fopen = "rb";
     else
@@ -134,6 +143,7 @@ static voidpf ZCALLBACK fopen64_file_func (voidpf opaque, const void* filename, 
 static uLong ZCALLBACK fread_file_func (voidpf opaque, voidpf stream, void* buf, uLong size)
 {
     uLong ret;
+    (void)opaque;
     ret = (uLong)fread(buf, 1, (size_t)size, (FILE *)stream);
     return ret;
 }
@@ -141,6 +151,7 @@ static uLong ZCALLBACK fread_file_func (voidpf opaque, voidpf stream, void* buf,
 static uLong ZCALLBACK fwrite_file_func (voidpf opaque, voidpf stream, const void* buf, uLong size)
 {
     uLong ret;
+    (void)opaque;
     ret = (uLong)fwrite(buf, 1, (size_t)size, (FILE *)stream);
     return ret;
 }
@@ -148,6 +159,7 @@ static uLong ZCALLBACK fwrite_file_func (voidpf opaque, voidpf stream, const voi
 static long ZCALLBACK ftell_file_func (voidpf opaque, voidpf stream)
 {
     long ret;
+    (void)opaque;
     ret = ftell((FILE *)stream);
     return ret;
 }
@@ -156,6 +168,7 @@ static long ZCALLBACK ftell_file_func (voidpf opaque, voidpf stream)
 static ZPOS64_T ZCALLBACK ftell64_file_func (voidpf opaque, voidpf stream)
 {
     ZPOS64_T ret;
+    (void)opaque;
     ret = FTELLO_FUNC((FILE *)stream);
     return ret;
 }
@@ -164,6 +177,7 @@ static long ZCALLBACK fseek_file_func (voidpf  opaque, voidpf stream, uLong offs
 {
     int fseek_origin=0;
     long ret;
+    (void)opaque;
     switch (origin)
     {
     case ZLIB_FILEFUNC_SEEK_CUR :
@@ -187,6 +201,7 @@ static long ZCALLBACK fseek64_file_func (voidpf  opaque, voidpf stream, ZPOS64_T
 {
     int fseek_origin=0;
     long ret;
+    (void)opaque;
     switch (origin)
     {
     case ZLIB_FILEFUNC_SEEK_CUR :
@@ -212,6 +227,7 @@ static long ZCALLBACK fseek64_file_func (voidpf  opaque, voidpf stream, ZPOS64_T
 static int ZCALLBACK fclose_file_func (voidpf opaque, voidpf stream)
 {
     int ret;
+    (void)opaque;
     ret = fclose((FILE *)stream);
     return ret;
 }
@@ -219,6 +235,7 @@ static int ZCALLBACK fclose_file_func (voidpf opaque, voidpf stream)
 static int ZCALLBACK ferror_file_func (voidpf opaque, voidpf stream)
 {
     int ret;
+    (void)opaque;
     ret = ferror((FILE *)stream);
     return ret;
 }

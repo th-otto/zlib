@@ -28,9 +28,11 @@
         #endif
 #endif
 
-#if defined(__APPLE__) || defined(__CYGWIN__)
-// In darwin and perhaps other BSD variants off_t is a 64 bit value, hence no need for specific 64 bit functions
-// Ditto cygwin.
+#if defined(__APPLE__) || defined(__CYGWIN__) || defined(__MINT__) || defined(__PUREC__)
+/*
+ * In darwin and perhaps other BSD variants off_t is a 64 bit value, hence no need for specific 64 bit functions
+ * Ditto cygwin.
+ */
 #define FOPEN_FUNC(filename, mode) fopen(filename, mode)
 #define FTELLO_FUNC(stream) ftello(stream)
 #define FSEEKO_FUNC(stream, offset, origin) fseeko(stream, offset, origin)

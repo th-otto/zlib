@@ -13,9 +13,9 @@
 #include <mint/mintbind.h>
 #include <mint/slb.h>
 #include <errno.h>
-#include "zlibstruct.h"
+#include "zlibstr.h"
 
-#ifdef __MSHORT__
+#if defined(__MSHORT__) || defined(__PUREC__)
 # error "the zlib.slb must not be compiled with -mshort"
 #endif
 
@@ -35,6 +35,14 @@ struct per_proc {
 
 static struct per_proc procs[MAX_PIDS];
 
+static pid_t slb_user(void)
+{
+	pid_t pid = Pgetpid();
+	if (pid == (pid_t)-ENOSYS)
+		pid = 1;
+	return pid;
+}
+
 
 static struct per_proc *get_proc(pid_t pid, pid_t slot)
 {
@@ -43,22 +51,23 @@ static struct per_proc *get_proc(pid_t pid, pid_t slot)
 	/*
 	 * see if we can use it as a direct index into our array
 	 */
-	if (pid >= 0 && pid < MAX_PIDS)
+	if (pid > 0 && pid < MAX_PIDS && procs[pid].pid == slot)
 		return &procs[pid];
 	/*
 	 * TODO: if MiNT ever uses pids >= 1000,
 	 * use a hash instead
 	 */
-	for (i = 0; i < MAX_PIDS; i++)
+	for (i = 1; i < MAX_PIDS; i++)
 		if (procs[i].pid == slot)
 			return &procs[i];
 	return NULL;
 }
 
 
+__attribute__((__noinline__))
 struct _zlibslb_funcs *zlib_get_slb_funcs(void)
 {
-	pid_t pid = Pgetpid();
+	pid_t pid = slb_user();
 	struct per_proc *proc = get_proc(pid, pid);
 	if (proc == NULL)
 		return NULL;
@@ -84,7 +93,7 @@ void zlib_exit(void)
 
 long zlib_open(BASEPAGE *bp)
 {
-	pid_t pid = Pgetpid();
+	pid_t pid = slb_user();
 	struct per_proc *proc = get_proc(pid, 0);
 	
 	(void)(bp);
@@ -105,7 +114,7 @@ long zlib_open(BASEPAGE *bp)
 
 void zlib_close(BASEPAGE *bp)
 {
-	pid_t pid = Pgetpid();
+	pid_t pid = slb_user();
 	struct per_proc *proc = get_proc(pid, pid);
 
 	(void)(bp);
@@ -122,17 +131,17 @@ void zlib_close(BASEPAGE *bp)
  */
 long zlib_set_imports(struct _zlibslb_funcs *funcs)
 {
-	pid_t pid = Pgetpid();
+	pid_t pid = slb_user();
 	struct per_proc *proc = get_proc(pid, pid);
 
 	if (proc == NULL)
 		return -ESRCH;
 	if (funcs->struct_size != sizeof(*funcs))
-		return -EBADARG;
+		return -EINVAL;
 	if (funcs->zlib_vernum > ZLIB_VERNUM)
 		return -EBADARG;
 	if (funcs->int_size != sizeof(int))
-		return -EBADARG;
+		return -ERANGE;
 	proc->funcs = funcs;
 	return 0;
 }
@@ -142,12 +151,10 @@ long zlib_set_imports(struct _zlibslb_funcs *funcs)
  * just redefining memcpy is not enough;
  * the compiler will also generate references to it
  */
-
 void *(memcpy)(void *dest, const void *src, size_t len)
 {
 	return memcpy(dest, src, len);
 }
-
 
 /* same for strlen */
 size_t (strlen)(const char *str)
