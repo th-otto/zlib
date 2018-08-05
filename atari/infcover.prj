@@ -1,5 +1,6 @@
 infcover.ttp
 
+.C[-I.]
 .C[-I..]
 .C[-Ic:\pc\include]
 

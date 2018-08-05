@@ -1,5 +1,6 @@
 examples.tos
 
+.C[-I.]
 .C[-I..]
 .C[-Ic:\pc\include]
 .C[-DZLIB_SLB=1]

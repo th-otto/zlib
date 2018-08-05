@@ -209,7 +209,7 @@
 #if !defined(STDC) && (defined(__STDC__) || defined(__cplusplus))
 #  define STDC
 #endif
-#if !defined(STDC) && (defined(__GNUC__) || defined(__BORLANDC__) || defined(__PUREC__))
+#if !defined(STDC) && (defined(__GNUC__) || defined(__BORLANDC__) || defined(__PUREC__) || defined(__AHCC__))
 #  define STDC
 #endif
 #if !defined(STDC) && (defined(MSDOS) || defined(WINDOWS) || defined(WIN32))
@@ -403,7 +403,7 @@
 #  endif
 #endif
 
-#if defined(ZLIB_SLB) && defined(__PUREC__)
+#if defined(ZLIB_SLB) && (defined(__PUREC__) || defined(__AHCC__))
 #  define ZEXPORT cdecl
 #  define ZEXPORTVA cdecl
 #  define ZCALLBACK cdecl
@@ -430,7 +430,7 @@
 #if !defined(__MACTYPES__)
 typedef unsigned char  Byte;  /* 8 bits */
 #endif
-#if defined(__MSHORT__) && defined(ZLIB_SLB)
+#if (defined(__MSHORT__) || defined(__PUREC__) || defined(__AHCC__)) && defined(ZLIB_SLB)
 typedef unsigned long  uInt;  /* 16 bits or more */
 typedef long z_int_t;
 #else
