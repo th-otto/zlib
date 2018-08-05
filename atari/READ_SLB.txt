@@ -1,0 +1,121 @@
+ZLIB 1.2.11 shared library for Atari (MiNT/MagiC)
+=================================================
+
+This is an attempt to make ZLIB, which is used widely by several applications,
+available as a shared libary for Atari.
+
+The goal here was to make it as easy as possible to switch from linking a
+static version, to use the shared version instead. Remember though that
+neither the OS nor the compilers in use have direct support for that,
+and that the application needs to support it.
+
+
+How to use it:
+==============
+
+for GCC:
+Install the header files from the include directory to /usr/include (or
+to your cross installation directory), the libraries to /usr/lib, and
+the executables from /mint/slb to a directory where Slbopen can find them
+(usually also /mint/slb, or c:/gemsys/slb)
+
+In your application:
+- Define -DZLIB_SLB before including zlib.h, or include slb/zlib.h instead
+  (both should have the same effect)
+- add a call to slb_zlib_open() before using any function from zlib. Optionally,
+  you can pass in a library search path that is passed along to Slbopen().
+- for completeness, you can also add a call to slb_zlib_close() before your
+  application terminates.
+- link to libz.slb.a instead of the normal libz.a
+- use any function from zlib as usual. No need to pass any extra parameters.
+
+For Pure-C:
+Same as for GCC, except:
+- You can use the header files from the purec/include directory instead. They
+  are identical to the ones for GCC, just converted to have CR/LF endings.
+- the static library is named zlib.lib, the import library for the
+  shared library is zlibslb.lib.
+
+That's all!
+
+Note that slb_zlib_open() contains fallback code for systems lacking Slbopen(),
+so this should work even on SingleTOS.
+
+
+
+Files in the archive:
+=====================
+
+usr/include/zlib.h
+usr/include/zconf.h
+    Slightly modified versions from the files of the zlib 1.2.11 distribution,
+    intended to be usable for both static and shared linking.
+usr/include/slb/zlib.h
+    Include file for using the shared library, with declarations of the above
+    mentioned functions.
+usr/lib/libz.a
+    Static version of the library
+usr/lib/libz.slb.a
+    Import library for using the shared library instead
+usr/lib/m68020-60/libz.a
+    Static version of the library, compiled for 68020 or better
+usr/lib/m68020-60/libz.slb.a
+    Import library for using the shared library instead,
+    compiled for 68020 or better
+usr/lib/m5475/libz.a
+    Static version of the library, compiled for coldfire
+usr/lib/m5475/libz.slb.a
+    Import library for using the shared library instead,
+    compiled for coldfire
+usr/bin/*
+    Some test/example programs from the original distribution.
+    example/minigzip are the statically linked versions,
+    and examplesh/minigzipsh are linked for the shared library.
+
+purec/include:
+    Header files for Pure-C. Same as for GCC, just converted to have CR/LF endings.
+purec/lib/000/zlib.lib
+    Static version of the library
+purec/lib/000/zlibslb.lib
+    Import library for using the shared library instead
+purec/lib/020/zlib.lib
+    Static version of the library, compiled for 68020 or better
+purec/lib/020/zlibslb.lib
+    Import library for using the shared library instead,
+    compiled for 68020 or better
+    
+mint/slb
+    The shared library itself. Use the one appropiate for your system.
+    Those were compiled by GCC, but can be used also by Pure-C.
+
+
+Exported functions:
+===================
+
+#0: long zlib_slb_control(long fn, void *arg)
+    - used internally by slb_zlip_open() to check that
+      the correct version of the library was loaded
+
+everything else:
+    - all functions publicitly available from zlib.h.
+      Consult that header file, or the man page on
+      how to use them.
+
+
+Known bugs:
+===========
+
+- Although the handle of the shared library and its corresponding exec
+  function are available to the application, the exec function
+  cannot be directly called. Always use the import functions
+  (they cover all available functions, anyway).
+
+- The library exports all the 64-bit file functions, but, due to lack
+  of support of the OS, they are actually identical to their normal
+  version. It's not possible to handle files > 2GB.
+
+- When using the library with Pure-C, you may have to change some variables
+  from plain "int" to "z_int_t". This is because the library was
+  compiled by gcc, and sizeof(int) differs between the two. Look at
+  test/example.c from the source archive where that changes have already been
+  made.

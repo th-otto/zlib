@@ -1,0 +1,29 @@
+The usual way of implementing the entry points of a shared library on Atari,
+would be (using deflate(strm level) as an example):
+
+- open the library
+- call (*exec)(slbhandle, 4, 2, strm, level)
+  (where 4 is the function number, and 2 is the number of arguments)
+- define a wrapper function in the shared library, which is eg. defined as
+  int slb_deflate(BASEPAGE *bp, long fn, short nargs, ...)
+- call the deflate function from zlib
+- return to caller
+
+That process has the disadvantage that
+- every library call would need to pass 3 additional arguments,
+  which is not only overhead, but also different from the API
+  when using the static version
+- the application not only has to know the name, but also the number of the
+  exported function
+- the arguments are pushed several times, before the actual function is called,
+  producing quite some overhead.
+
+To make it possible to call the actual functions with at least overhead
+as possible, without passing in extra parameters, or using several wrappers,
+the functions from the import library do all the magic to push the
+library handle etc, and call the function. The entry point of that function
+will then remove those extra parameters, and jump to the actual library function.
+As a result, you cannot call the exec function (which is returned by
+Slbopen)()) directly anymore, because that would remove the arguments twice,
+resulting in a wrong stack. Therefore: always use the import functions
+(they cover all available functions, anyway)

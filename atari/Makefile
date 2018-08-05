@@ -29,7 +29,6 @@ SHAREDLIB=zlib.slb
 SHAREDLIBV=$(SHAREDLIB)
 SHAREDLIBM=
 IMPORTLIB=libz.slb.a
-SHAREDLIBPOST=
 SHAREDTARGET=$(SHAREDLIBV)
 LIBS=$(STATICLIB) $(SHAREDTARGET)
 
@@ -441,9 +440,8 @@ unzip.lo: $(SRCDIR)contrib/minizip/unzip.c zlibslb.h
 	$(CC) $(SFLAGS) $(CPPFLAGS) -c -o $@ $<
 
 
-placebo $(SHAREDTARGET): $(PIC_OBJS) $(STATICLIB)
+$(SHAREDTARGET): $(PIC_OBJS) $(STATICLIB)
 	$(LDSHARED) $(SFLAGS) $(CPPFLAGS) -o $@ $(PIC_OBJS) $(LDSHAREDLIBC) $(LDFLAGS) $(EXTRA_LDFLAGS)
-	$(SHAREDLIBPOST)
 
 example$(EXE): example.o $(STATICLIB)
 	$(CC) $(CFLAGS) $(CPPFLAGS) $(EXTRA_CFLAGS) -o $@ example.o $(TEST_LDFLAGS) $(EXTRA_LDFLAGS)
@@ -529,6 +527,42 @@ docs: zlib.3.pdf
 
 zlib.3.pdf: $(SRCDIR)zlib.3
 	groff -mandoc -f H -T ps $(SRCDIR)zlib.3 | ps2pdf - $@
+
+bindist:
+	$(MAKE) DESTDIR=/tmp/t/zlib PUREC=/windows/c/atari/src/zlib/atari allbindist
+
+allbindist:
+	$(MAKE) clean
+	$(MAKE) -j8 CFLAGS="$(CFLAGS) -m68020-60"
+	stripex *.slb
+	$(MAKE) libdir="$(libdir)/m68020-60" sharedlibdir=$(sharedlibdir)/020 install
+	rm -rf $(DESTDIR)$(libdir)/m68020-60/pkgconfig
+	$(MAKE) clean
+	$(MAKE) -j8 CFLAGS="$(CFLAGS) -mcpu=5475"
+	stripex *.slb
+	$(MAKE) libdir="$(libdir)/m5475" sharedlibdir=$(sharedlibdir)/v4e install
+	rm -rf $(DESTDIR)$(libdir)/m5475/pkgconfig
+	$(MAKE) clean
+	$(MAKE) -j8 CFLAGS="$(CFLAGS) -m68000"
+	stripex *.slb
+	$(MAKE) libdir="$(libdir)" sharedlibdir=$(sharedlibdir)/000 install
+	install -m 755 $(SHAREDTARGET) $(DESTDIR)$(sharedlibdir)
+	install -d $(DESTDIR)$(bindir)
+	$(STRIP) example examplesh minigzip minigzipsh
+	install -m 755 example examplesh minigzip minigzipsh $(DESTDIR)$(bindir)
+	rm -f $(DESTDIR)$(mandir)/*/*.gz
+	gzip $(DESTDIR)$(mandir)/*/*
+	install -d $(DESTDIR)/purec/include/slb $(DESTDIR)/purec/lib/000 $(DESTDIR)/purec/lib/020 $(DESTDIR)/purec/bin
+	install -m 644 $(SRCDIR)zlib.h $(SRCDIR)zconf.h $(DESTDIR)/purec/include
+	install -m 644 slb/zlib.h $(DESTDIR)/purec/include/slb
+	cd $(DESTDIR)/purec/include && cr2nl -R -d .
+	install -m 644 slb/zlib.h $(DESTDIR)/purec/include/slb
+	install -m 644 $(PUREC)/000/zlib.lib $(PUREC)/000/zlibslb.lib $(DESTDIR)/purec/lib/000
+	install -m 644 $(PUREC)/020/zlib.lib $(PUREC)/020/zlibslb.lib $(DESTDIR)/purec/lib/020
+	install -m 755 $(PUREC)/examples.tos $(DESTDIR)/purec/bin
+	$(MAKE) clean
+	install -m 644 READ_SLB.txt $(DESTDIR)
+	cd $(DESTDIR)/..; rm -f zlib1211.zip; zip -r zlib1211.zip `basename $(DESTDIR)`
 
 mostlyclean: clean
 clean:
