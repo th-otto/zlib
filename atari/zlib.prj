@@ -26,7 +26,8 @@ c:\pc\lib\zlib.lib
 .C[-8-]
 .C[-A-]
 
-.L [-J]
+.L[-J]
+.L[-G]
 
 =
 

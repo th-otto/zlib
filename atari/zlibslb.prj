@@ -28,7 +28,8 @@ c:\pc\lib\zlibslb.lib
 .C[-8-]
 .C[-A-]
 
-.L [-J]
+.L[-J]
+.L[-G]
 
 =
 zimpptr.c

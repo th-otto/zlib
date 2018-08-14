@@ -556,13 +556,13 @@ allbindist:
 	install -m 644 $(SRCDIR)zlib.h $(SRCDIR)zconf.h $(DESTDIR)/purec/include
 	install -m 644 slb/zlib.h $(DESTDIR)/purec/include/slb
 	cd $(DESTDIR)/purec/include && cr2nl -R -d .
-	install -m 644 slb/zlib.h $(DESTDIR)/purec/include/slb
 	install -m 644 $(PUREC)/000/zlib.lib $(PUREC)/000/zlibslb.lib $(DESTDIR)/purec/lib/000
 	install -m 644 $(PUREC)/020/zlib.lib $(PUREC)/020/zlibslb.lib $(DESTDIR)/purec/lib/020
 	install -m 755 $(PUREC)/examples.tos $(DESTDIR)/purec/bin
 	$(MAKE) clean
 	install -m 644 READ_SLB.txt $(DESTDIR)
 	cd $(DESTDIR)/..; rm -f zlib1211.zip; zip -r zlib1211.zip `basename $(DESTDIR)`
+	cd $(SRCDIR); git archive --prefix=zlib-1.2.11-slb/ HEAD | bzip2 > $(DESTDIR)/../zlib-1.2.11-slb.tar.bz2
 
 mostlyclean: clean
 clean:

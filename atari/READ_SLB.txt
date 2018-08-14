@@ -93,7 +93,7 @@ Exported functions:
 ===================
 
 #0: long zlib_slb_control(long fn, void *arg)
-    - used internally by slb_zlip_open() to check that
+    - used internally by slb_zlib_open() to check that
       the correct version of the library was loaded
 
 everything else:

@@ -99,7 +99,7 @@ static long localSlbLoad(const char *sharedlib, const char *path, long ver, SLB_
 	
 	strcat(file, sharedlib);
 
-	bp = (BASEPAGE *) Pexec(3, file, "\0\0", 0L);
+	bp = (BASEPAGE *) Pexec(3, file, "\0", 0L);
 	for (i = 0; i < 2 && (long) bp < 0; i++)
 	{
 		const char *ptr;
@@ -136,7 +136,7 @@ static long localSlbLoad(const char *sharedlib, const char *path, long ver, SLB_
 					strcat(file, "\\");
 
 				strcat(file, sharedlib);
-				bp = (BASEPAGE *) Pexec(3, file, "\0\0", 0L);
+				bp = (BASEPAGE *) Pexec(3, file, "\0", 0L);
 				if ((long) bp > 0)
 				{
 					break;
