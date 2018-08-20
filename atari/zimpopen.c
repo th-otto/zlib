@@ -17,10 +17,6 @@
 #include "zlibstr.h"
 #include "slbload.h"
 
-#ifndef NO_DUMMY_DECL
-struct internal_state      {int dummy;}; /* for buggy compilers */
-#endif
-
 static struct _zlibslb_funcs zlibslb_funcs;
 
 

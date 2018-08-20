@@ -10,10 +10,6 @@
 #include <mint/osbind.h>
 #include "zlibstr.h"
 
-#ifndef NO_DUMMY_DECL
-struct internal_state      {int dummy;}; /* for buggy compilers */
-#endif
-
 
 static long _CDECL slb_not_loaded(SLB_HANDLE slb, long fn, short nwords, ...)
 {

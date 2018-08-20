@@ -14,10 +14,6 @@
 #endif
 #include "dbgmem.h"
 
-#ifndef NO_DUMMY_DECL
-struct internal_state      {int dummy;}; /* for buggy compilers */
-#endif
-
 #if defined(VMS) || defined(RISCOS)
 #  define TESTFILE "foo-gz"
 #else

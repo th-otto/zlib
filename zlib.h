@@ -1909,4 +1909,9 @@ ZEXTERN z_int_t        ZEXPORTVA gzvprintf Z_ARG((gzFile file,
 #include <slb/zlib.h>
 #endif
 
+/* for buggy compilers */
+#if !defined(ZLIB_COMPILATION) && (defined(__PUREC__) || defined(__AHCC__))
+struct internal_state { int dummy; };
+#endif
+
 #endif /* ZLIB_H */

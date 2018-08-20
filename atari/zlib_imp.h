@@ -17,10 +17,6 @@ SLB *slb_zlib_get(void);
 #undef SLB_NARGS
 #define SLB_NARGS(_nargs) SLB_NWORDS(_nargs)
 
-#ifndef NO_DUMMY_DECL
-struct internal_state      {int dummy;}; /* for buggy compilers */
-#endif
-
 #ifdef __GNUC__
 
 #define PUSH_FNQ(fn) \
