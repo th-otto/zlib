@@ -101,14 +101,96 @@ static void _CDECL gcc_free(void *s)
 	free(s);
 }
 
+#if defined(__PUREC__) || defined(__AHCC__)
+#define ESRCH	3	    /* No such process            */
+#define EINTR	4		/* Interrupted system call    */
+#define ENXIO	6		/* No such device or address  */
+#define EFAULT	14		/* Bad address                */
+#define ENOTBLK	15		/* Bulk device required       */
+#define EBUSY	16		/* Resource is busy           */
+#define ENOTTY	25		/* Not a terminal             */
+#define ETXTBSY	26		/* Text file is busy          */
+#define EFBIG	27		/* File is too large          */
+#define EMLINK	31		/* Too many links             */
+#define EPIPE	32		/* Broken pipe                */
+#define EILSEQ  84      /* Illegal byte sequence      */
+#endif
+
 static z_int_t _CDECL gcc_get_errno(void)
 {
+#if defined(__GNUC__) || defined(_GNU_SOURCE)
+	/* we are just here because of -mshort */
 	return errno;
+#elif defined(__PUREC__) || defined(__AHCC__) || defined(LATTICE)
+	/* must translate error numbers from Pure-C library to what mintlib expects */
+	switch (errno)
+	{
+		case EPERM: return 38;
+		case ENOENT: return 33;
+		case ESRCH: return 20;
+		case EINTR: return 128;
+		case EIO: return 90;
+		case ENXIO: return 46;
+		case EBADF: return 37;
+#if defined(__PUREC__) || defined(__AHCC__)
+		case EILLSPE: return 25; /* -> EINVAL */
+		case EINVMEM: return 40; /* -> EFAULT */
+#endif
+		case EFAULT: return 40;
+		case ENOTBLK: return 23;
+		case EBUSY: return 2;
+		case ENOMEM: return 39;
+		case EACCES: return 36;
+		case EEXIST: return 85;
+#if defined(__PUREC__) || defined(__AHCC__)
+		case EPLFMT: return 66; /* -> ENOEXEC */
+#endif
+#if defined(LATTICE)
+		case ENOEXEC: return 66;
+		case EAGAIN: return 326;
+		case EXDEV: return 48;
+		case ECHILD: return 48;
+#endif
+		case ENODEV: return 15;
+		case ENOTDIR: return 34;
+		case EINVAL: return 25;
+		case ENFILE: return 50;
+		case EMFILE: return 35;
+		case ENOTTY: return 87;
+		case ETXTBSY: return 70;
+		case EFBIG: return 71;
+		case ENOSPC: return 91;
+		case ESPIPE: return 6;
+		case EROFS: return 13;
+		case EMLINK: return 82;
+		case EPIPE: return 81;
+		case EDOM: return 89;
+		case ERANGE: return 88;
+#if defined(__PUREC__) || defined(__AHCC__)
+		case ENMFILE: return 49;
+#endif
+#if defined(LATTICE)
+		case EDEADLK: return 22;
+#endif
+		case EILSEQ: return 27;
+	}
+	return 1;
+#else
+ # error "NYI"
+	return 1;
+#endif
 }
 
 static char *_CDECL gcc_strerror(z_int_t e)
 {
+#if defined(__GNUC__) || defined(_GNU_SOURCE)
 	return strerror((int)e);
+#else
+	/* FIXME: would need strerror from mintlib */
+	static char errorbuf[14];
+	sprintf(errorbuf, "error #%d", (int)e);
+	return errorbuf;
+#endif
 }
 
 #define MINTLIB_O_CREAT  0x000200L
