@@ -369,8 +369,8 @@ unzip.o: $(SRCDIR)contrib/minizip/unzip.c
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c -o $@ $<
 
 
-slbexec.o: slbexec.s
-	$(CC) $(CFLAGS) -Wa,--mri $(CPPFLAGS) -c -o $@ $<
+slbexec.o: slbexec.S
+	$(CC) $(CFLAGS) -Wa,--mri $(CPPFLAGS) -D_BasPag=__base -c -o $@ $<
 
 
 header.lo: header.S

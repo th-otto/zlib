@@ -26,7 +26,7 @@
 
 	xdef __slb_local_exec
 	xdef ___slb_local_exec
-	xref __base
+	xref _BasPag
 
 __slb_local_exec:
 ___slb_local_exec:
@@ -41,7 +41,7 @@ ___slb_local_exec:
 	move.l		4*18(a0,d0),d0		; Function pointer
 	beq.s		invalidnum
 
-	move.l		__base,a0	
+	move.l		_BasPag,a0	
 	move.l		0(a0),4(sp)			; act_pd onto stack, replacing pointer
 
 	move.l		d0,a0

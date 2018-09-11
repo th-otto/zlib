@@ -52,6 +52,10 @@
 long __slb_local_exec(void *slb, ...);
 #endif
 
+#ifdef __GNUC__
+#define _BasPag _base
+#endif
+
 static int os_slb = 1;
 static const char *user_slbpath;
 
@@ -186,7 +190,7 @@ static long localSlbLoad(const char *sharedlib, const char *path, long ver, SLB_
 	strcpy(bp->p_cmdlin, file);
 
 	slbheader->slb_init();
-	slbheader->slb_open(_base);
+	slbheader->slb_open(_BasPag);
 
 	*slb = (SLB_HANDLE) slbheader;
 	*slbexec = (SLB_EXEC) __slb_local_exec;
@@ -195,7 +199,7 @@ static long localSlbLoad(const char *sharedlib, const char *path, long ver, SLB_
 
 static long localSlbUnload(SLB_HANDLE slb)
 {
-	((SLB_HEADER *) slb)->slb_close(_base);
+	((SLB_HEADER *) slb)->slb_close(_BasPag);
 	((SLB_HEADER *) slb)->slb_exit();
 
 	Mfree(slb);
