@@ -38,11 +38,11 @@ ___slb_local_exec:
 	
 	add.l		d0,d0				; *= sizeof (long)
 	add.l		d0,d0
-	move.l		4*18(a0,d0),d0		; Function pointer
+	move.l		4*18(a0,d0.l),d0	; Function pointer
 	beq.s		invalidnum
 
 	move.l		_BasPag,a0	
-	move.l		0(a0),4(sp)			; act_pd onto stack, replacing pointer
+	move.l		a0,4(sp)			; act_pd onto stack, replacing pointer
 
 	move.l		d0,a0
 	jmp			(a0)

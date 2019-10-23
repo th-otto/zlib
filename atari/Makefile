@@ -17,8 +17,9 @@ CROSS_PREFIX=m68k-atari-mint-
 
 CC = $(CROSS_PREFIX)gcc
 
-CFLAGS=-O3 -Wall -fomit-frame-pointer
-CPPFLAGS= -D_LARGEFILE64_SOURCE=1 $(ZINCOUT) -DSHAREDLIB=\"$(SHAREDLIB)\"
+CPU_CFLAGS=-m68020-60
+CFLAGS=-O2 -Wall -fomit-frame-pointer -Wstrict-prototypes -Wmissing-prototypes -Werror $(CPU_CFLAGS)
+CPPFLAGS= -D_LARGEFILE64_SOURCE=1 $(ZINCOUT)
 SFLAGS=$(CFLAGS) -DZLIB_SLB
 LDFLAGS=
 TEST_LDFLAGS=-L. $(STATICLIB)
@@ -62,7 +63,7 @@ OBJG = compress.o uncompr.o gzclose.o gzlib.o gzread.o gzwrite.o
 OBJM = ioapi.o zip.o unzip.o iowin32.o
 OBJC = $(OBJZ) $(OBJG) $(OBJM)
 
-PIC_OBJZ = header.lo zlibinit.lo adler32.lo crc32.lo deflate.lo infback.lo inffast.lo inflate.lo inftrees.lo trees.lo zutil.lo
+PIC_OBJZ = header.lo zlibslb.lo zlibinit.lo adler32.lo crc32.lo deflate.lo infback.lo inffast.lo inflate.lo inftrees.lo trees.lo zutil.lo
 PIC_OBJG = compress.lo uncompr.lo gzclose.lo gzlib.lo gzread.lo gzwrite.lo
 PIC_OBJM = ioapi.lo zip.lo unzip.lo iowin32.lo
 PIC_OBJC = $(PIC_OBJZ) $(PIC_OBJG) $(PIC_OBJM)
@@ -214,7 +215,7 @@ GEN_IMP_OBJS = \
 	zimp_174.o \
 	zimp_175.o \
 	$(empty)
-IMP_OBJS = zimpptr.o zimpopen.o slbload.o slbexec.o \
+IMP_OBJS = zimpptr.o zimpopen.o libclose.o slbload.o slbexec.o \
 	$(GEN_IMP_OBJS)
 
 all: static shared all64
@@ -374,12 +375,15 @@ slbexec.o: slbexec.S
 
 
 header.lo: header.S
-	$(CC) $(SFLAGS) $(CPPFLAGS) -c -o $@ $<
+	$(CC) $(SFLAGS) $(CPPFLAGS) -DSHAREDLIB=\"$(SHAREDLIB)\" -c -o $@ $<
 
 zlibver.h: $(SRCDIR)zlib.h
 	grep ZLIB_VERNUM $< > $@
 
 zlibinit.lo: zlibinit.c
+	$(CC) $(SFLAGS) $(CPPFLAGS) -c -o $@ $<
+
+zlibslb.lo: zlibslb.c
 	$(CC) $(SFLAGS) $(CPPFLAGS) -c -o $@ $<
 
 adler32.lo: $(SRCDIR)adler32.c
@@ -442,6 +446,7 @@ unzip.lo: $(SRCDIR)contrib/minizip/unzip.c zlibslb.h
 
 $(SHAREDTARGET): $(PIC_OBJS) $(STATICLIB)
 	$(LDSHARED) $(SFLAGS) $(CPPFLAGS) -o $@ $(PIC_OBJS) $(LDSHAREDLIBC) $(LDFLAGS) $(EXTRA_LDFLAGS)
+	stripex $@
 
 example$(EXE): example.o $(STATICLIB)
 	$(CC) $(CFLAGS) $(CPPFLAGS) $(EXTRA_CFLAGS) -o $@ example.o $(TEST_LDFLAGS) $(EXTRA_LDFLAGS)
@@ -525,26 +530,52 @@ uninstall:
 
 docs: zlib.3.pdf
 
+
+GFA_INL = \
+	gfa/strcat.inl \
+	gfa/strcmp.inl \
+	gfa/strcpy.inl \
+	gfa/strlen.inl \
+	gfa/memchr.inl \
+	gfa/memcpy.inl \
+	gfa/memset.inl \
+	gfa/strerror.inl \
+	gfa/malloc.inl \
+	gfa/free.inl \
+	$(empty)
+
+GFA_OTHER = \
+	gfa/zlib.lst \
+	gfa/zlib.gfa \
+	gfa/slbload.lst \
+	gfa/utils.lst \
+	gfa/zlibtest.gfa \
+	gfa/example.gfa \
+	gfa/example.lst \
+	gfa/usepkzip.gfa \
+	gfa/usepkzip.lst \
+	$(empty)
+
+gfa/minilib.inl: $(GFA_INL)
+	cat $(GFA_INL) > $@
+
 zlib.3.pdf: $(SRCDIR)zlib.3
 	groff -mandoc -f H -T ps $(SRCDIR)zlib.3 | ps2pdf - $@
 
-bindist:
-	$(MAKE) DESTDIR=/tmp/t/zlib PUREC=/windows/c/atari/src/zlib/atari allbindist
+bindist: gfa/minilib.inl
+	$(MAKE) DESTDIR=/tmp/t/zlib PUREC=/windows/c/atari/pc/lib allbindist
 
 allbindist:
 	$(MAKE) clean
-	$(MAKE) -j8 CFLAGS="$(CFLAGS) -m68020-60"
-	stripex *.slb
+	$(MAKE) -j8 CPU_CFLAGS="-m68020-60"
 	$(MAKE) libdir="$(libdir)/m68020-60" sharedlibdir=$(sharedlibdir)/020 install
 	rm -rf $(DESTDIR)$(libdir)/m68020-60/pkgconfig
 	$(MAKE) clean
-	$(MAKE) -j8 CFLAGS="$(CFLAGS) -mcpu=5475"
-	stripex *.slb
+	$(MAKE) -j8 CPU_CFLAGS="-mcpu=5475"
 	$(MAKE) libdir="$(libdir)/m5475" sharedlibdir=$(sharedlibdir)/v4e install
 	rm -rf $(DESTDIR)$(libdir)/m5475/pkgconfig
 	$(MAKE) clean
-	$(MAKE) -j8 CFLAGS="$(CFLAGS) -m68000"
-	stripex *.slb
+	$(MAKE) -j8 CPU_CFLAGS="-m68000"
 	$(MAKE) libdir="$(libdir)" sharedlibdir=$(sharedlibdir)/000 install
 	install -m 755 $(SHAREDTARGET) $(DESTDIR)$(sharedlibdir)
 	install -d $(DESTDIR)$(bindir)
@@ -558,7 +589,8 @@ allbindist:
 	cd $(DESTDIR)/purec/include && cr2nl -R -d .
 	install -m 644 $(PUREC)/000/zlib.lib $(PUREC)/000/zlibslb.lib $(DESTDIR)/purec/lib/000
 	install -m 644 $(PUREC)/020/zlib.lib $(PUREC)/020/zlibslb.lib $(DESTDIR)/purec/lib/020
-	install -m 755 $(PUREC)/examples.tos $(DESTDIR)/purec/bin
+	install -d $(DESTDIR)/gfa
+	install -m 644 gfa/minilib.inl $(GFA_INL) $(GFA_OTHER) $(DESTDIR)/gfa
 	$(MAKE) clean
 	install -m 644 READ_SLB.txt $(DESTDIR)
 	cd $(DESTDIR)/..; rm -f zlib1211.zip; zip -r zlib1211.zip `basename $(DESTDIR)`

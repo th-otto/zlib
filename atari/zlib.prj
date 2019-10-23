@@ -1,4 +1,4 @@
-c:\pc\lib\zlib.lib
+c:\pc\lib\000\zlib.lib
 
 .C[-I.]
 .C[-I..]

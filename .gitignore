@@ -61,6 +61,7 @@ minigzip
 minigzip64
 examplesh
 minigzipsh
+inflate
 libz.so*
 zlibver.h
 zimp_[0-9]*.c

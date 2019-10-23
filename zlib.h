@@ -84,7 +84,7 @@ typedef void   (*free_func)  OF((voidpf opaque, voidpf address));
 struct internal_state;
 
 typedef struct z_stream_s {
-    z_const Bytef *next_in;     /* next input byte */
+    const Bytef *next_in;     /* next input byte */
     uInt     avail_in;  /* number of bytes available at next_in */
     uLong    total_in;  /* total number of input bytes read so far */
 
@@ -92,7 +92,7 @@ typedef struct z_stream_s {
     uInt     avail_out; /* remaining free space at next_out */
     uLong    total_out; /* total number of bytes output so far */
 
-    z_const char *msg;  /* last error message, NULL if no error */
+    const char *msg;  /* last error message, NULL if no error */
     struct internal_state FAR *state; /* not visible by applications */
 
     alloc_func zalloc;  /* used to allocate the internal state */
@@ -1090,7 +1090,7 @@ ZEXTERN z_int_t ZEXPORT inflateBackInit OF((z_streamp strm, z_int_t windowBits,
 */
 
 typedef uInt ZCALLBACK (*in_func) OF((void FAR *,
-                                z_const unsigned char FAR * FAR *));
+                                const unsigned char FAR * FAR *));
 typedef z_int_t ZCALLBACK (*out_func) OF((void FAR *, unsigned char FAR *, uInt));
 
 ZEXTERN z_int_t ZEXPORT inflateBack OF((z_streamp strm,

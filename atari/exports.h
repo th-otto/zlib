@@ -18,8 +18,8 @@
 	/*   2 */ LIBFUNC(2, compress, 4)
 	/*   3 */ LIBFUNC(3, crc32, 3)
 	/*   4 */ LIBFUNC(4, deflate, 2)
-	/*   5 */ LIBFUNC(5, deflateCopy, 5)
-	/*   6 */ LIBFUNC(6, deflateEnd, 6)
+	/*   5 */ LIBFUNC(5, deflateCopy, 2)
+	/*   6 */ LIBFUNC(6, deflateEnd, 1)
 	/*   7 */ LIBFUNC(7, deflateInit2_, 8)
 	/*   8 */ LIBFUNC(8, deflateInit_, 4)
 	/*   9 */ LIBFUNC(9, deflateParams, 3)
@@ -166,9 +166,9 @@
 
 /* zlib1 v1.2.4 added: */
 	/* 140 */ LIBFUNC2(140, adler32_combine, 3)
-	/* 141 */ LIBFUNC2(141, adler32_combine64, 3)
+	/* 141 */ LIBFUNC2(141, adler32_combine64, 4)
 	/* 142 */ LIBFUNC2(142, crc32_combine, 3)
-	/* 143 */ LIBFUNC2(143, crc32_combine64, 3)
+	/* 143 */ LIBFUNC2(143, crc32_combine64, 4)
 	/* 144 */ LIBFUNC2(144, deflateSetHeader, 2)
 	/* 145 */ LIBFUNC2(145, deflateTune, 5)
 	/* 146 */ LIBFUNC2(146, gzbuffer, 2)
@@ -176,10 +176,10 @@
 	/* 148 */ LIBFUNC2(148, gzclose_w, 1)
 	/* 149 */ LIBFUNC2(149, gzdirect, 1)
 	/* 150 */ LIBFUNC2(150, gzoffset, 1)
-	/* 151 */ LIBFUNC2(151, gzoffset64, 1)
+	/* 151 */ LIBFUNC2(151, gzoffset64, 1) /* FIXME: returns z_off64_t */
 	/* 152 */ LIBFUNC2(152, gzopen64, 2)
-	/* 153 */ LIBFUNC2(153, gzseek64, 3)
-	/* 154 */ LIBFUNC2(154, gztell64, 1)
+	/* 153 */ LIBFUNC2(153, gzseek64, 4) /* FIXME: returns z_off64_t */
+	/* 154 */ LIBFUNC2(154, gztell64, 1) /* FIXME: returns z_off64_t */
 	/* 155 */ NOFUNC
 	/* 156 */ LIBFUNC2(156, inflateGetHeader, 2)
 	/* 157 */ LIBFUNC2(157, inflateMark, 1)

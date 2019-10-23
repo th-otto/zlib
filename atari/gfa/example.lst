@@ -1,0 +1,527 @@
+'
+' This is the small test program from the zlib distribution,
+' found in test/example.c, ported to GFA
+'
+' Make sure to install the appropiate ZLIB.SLB for your system
+' either here, or in some directory mentioned in $SLBPATH
+'
+REM #BT=0        !0=68K, 1=CF
+REM #IFT 0
+REM #LIB gbe 68k
+REM #EIT 1
+REM #LIB gbe v4e
+REM #FIT
+'
+'
+'
+REM #MP= global
+REM #PF= fastload,load alt,malloc alt
+REM $D+
+'
+ret%=@slb_zlib_open("")
+IF ret%<0
+  ~FORM_ALERT(1,"[1][ZLIB.SLB not found|"+STR$(ret%)+"][Shit]")
+  QUIT 1
+ENDIF
+'
+testfile$="foo.gz"+CHR$(0)
+hello$="hello, hello!"+CHR$(0)
+dictionary$="hello"+CHR$(0)
+@main
+@slb_zlib_close
+~FDELETE(testfile$)
+QUIT 0
+'
+> PROCEDURE main
+  LOCAL compr%
+  LOCAL uncompr%
+  LOCAL comprlen%
+  LOCAL uncomprlen%
+  '
+  IF LEFT$(@zlibversion$)<>LEFT$(zlib_version$)
+    PRINT "incompatible zlib version"
+    QUIT 1
+  ENDIF
+  IF @zlibversion$<>zlib_version$
+    PRINT "warning: different zlib version: expected ";zlib_version$;", got ";@zlibversion$
+  ENDIF
+  PRINT "zlib version ";zlib_version$;" = 0x";HEX$(zlib_vernum&,4);", compile flags = 0x";HEX$(@zlibcompileflags)
+  '
+  comprlen%=MUL(10000,4)
+  uncomprlen%=comprlen%
+  compr%=MALLOC(comprlen%)
+  uncompr%=MALLOC(uncomprlen%)
+  IF compr%=0 OR uncompr%=0
+    PRINT "out of memory"
+    QUIT 1
+  ENDIF
+  BCLEAR compr%,comprlen%
+  BCLEAR uncompr%,uncomprlen%
+  '
+  @test_compress(compr%,comprlen%,uncompr%,uncomprlen%)
+  @test_gzio(testfile$,uncompr%,uncomprlen%)
+  '
+  @test_deflate(compr%,comprlen%)
+  @test_inflate(compr%,comprlen%,uncompr%,uncomprlen%)
+  '
+  @test_large_deflate(compr%,comprlen%,uncompr%,uncomprlen%)
+  @test_large_inflate(compr%,comprlen%,uncompr%,uncomprlen%)
+  '
+  @test_flush(compr%,comprlen%)
+  @test_sync(compr%,comprlen%,uncompr%,uncomprlen%)
+  comprlen%=uncomprlen%
+  '
+  @test_dict_deflate(compr%,comprlen%)
+  @test_dict_inflate(compr%,comprlen%,uncompr%,uncomprlen%)
+  '
+  ~MFREE(compr%)
+  ~MFREE(uncompr%)
+  '
+  ~@gztell64(0)
+RETURN
+'
+> PROCEDURE test_compress(compr%,comprlen%,uncompr%,uncomprlen%)
+  LOCAL zerr%
+  LOCAL len%
+  LOCAL i%
+  '
+  len%=LEN(hello$)
+  zerr%=@compress(V:hello$,len%,compr%,comprlen%)
+  @check_err(zerr%,"compress")
+  CHAR{uncompr%}="garbage"
+  zerr%=@uncompress(compr%,comprlen%,uncompr%,uncomprlen%)
+  @check_err(zerr%,"uncompress")
+  IF CHAR{uncompr%}<>CHAR{V:hello$}
+    PRINT "bad uncompress"
+    QUIT 1
+  ENDIF
+  PRINT "uncompress: ";CHAR{uncompr%}
+RETURN
+> PROCEDURE test_gzio(fname$,uncompr%,uncomprlen%)
+  LOCAL zerr%
+  LOCAL len%
+  LOCAL pos%
+  LOCAL pos2%
+  LOCAL file%
+  LOCAL nread%
+  '
+  len%=LEN(hello$)
+  file%=@gzopen(fname$,"wb")
+  IF file%=0
+    PRINT "gzopen error"
+    QUIT 1
+  ENDIF
+  ~@gzputc(file%,ASC("h"))
+  IF @gzputs(file%,"ello")<>4
+    PRINT "gzputs err: ";@gzerror$(file%,zerr%)
+    QUIT 1
+  ENDIF
+  ' IF @gzprintf(file%,", %s!","hello")<>8
+  ' PRINT "gzprintf err: ";@gzerror$(file%,zerr%)
+  ' QUIT 1
+  ' ENDIF
+  IF @gzputs(file%,", hello!")<>8
+    PRINT "gzprintf err: ";@gzerror$(file%,zerr%)
+    QUIT 1
+  ENDIF
+  ~@gzseek(file%,1,1)   ! add one zero byte
+  ~@gzclose(file%)
+  file%=@gzopen(fname$,"rb")
+  IF file%=0
+    PRINT "gzopen error"
+    QUIT 1
+  ENDIF
+  CHAR{uncompr%}="garbage"
+  nread%=@gzread(file%,uncompr%,uncomprlen%)
+  IF nread%<>len%
+    PRINT "gzread err: ";nread%;"<>";len%;": ";@gzerror$(file%,zerr%)
+    QUIT 1
+  ENDIF
+  IF CHAR{uncompr%}<>CHAR{V:hello$}
+    PRINT "bad gzread: ";CHAR{uncompr%}
+    QUIT 1
+  ENDIF
+  PRINT "gzread: ";CHAR{uncompr%}
+  pos%=@gzseek(file%,-8,1)
+  pos2%=@gztell(file%)
+  IF pos%<>6 OR pos2%<>pos%
+    PRINT "gzseek error, pos=";pos%;", gztell=";pos2%
+    QUIT 1
+  ENDIF
+  IF @gzgetc(file%)<>ASC(" ")
+    PRINT "gzgetc error"
+    QUIT 1
+  ENDIF
+  IF @gzungetc(ASC(" "),file%)<>ASC(" ")
+    PRINT "gzungetc error"
+    QUIT 1
+  ENDIF
+  ~@gzgets(file%,uncompr%,uncomprlen%)
+  IF LEN(CHAR{uncompr%})<>7
+    PRINT "gzgets after seek: ";@gzerror$(file%,zerr%)
+    QUIT 1
+  ENDIF
+  IF CHAR{uncompr%}<>" hello!"
+    PRINT "bad gzgets after seek"
+    QUIT 1
+  ENDIF
+  PRINT "gzgets() after gzseek: ";CHAR{uncompr%}
+  ~@gzclose(file%)
+RETURN
+> PROCEDURE test_deflate(compr%,comprlen%)
+  LOCAL c_stream%
+  LOCAL zerr%
+  LOCAL len%
+  '
+  len%=LEN(hello$)
+  c_stream%=MALLOC(zlib_sizeof_stream%)
+  IF c_stream%=0
+    PRINT "out of memory"
+    QUIT 1
+  ENDIF
+  BCLEAR c_stream%,zlib_sizeof_stream%
+  LONG{ADD(c_stream%,32)}=0                    ! optional; will otherwise use Malloc
+  LONG{ADD(c_stream%,36)}=0
+  '
+  zerr%=@deflateinit(c_stream%,z_default_compression&)
+  @check_err(zerr%,"deflateInit")
+  LONG{ADD(c_stream%,0)}=V:hello$              ! c_stream->next_in = hello
+  LONG{ADD(c_stream%,12)}=compr%               ! c_stream->next_out = compr
+  WHILE LONG{ADD(c_stream%,8)}<>len% AND LONG{ADD(c_stream%,20)}<>comprlen%           ! while (c_stream->total_in != len)
+    ' force small buffers
+    LONG{ADD(c_stream%,4)}=1                   ! c_stream->avail_in = 1
+    LONG{ADD(c_stream%,16)}=1                  ! c_stream->avail_out = 1
+    zerr%=@deflate(c_stream%,z_no_flush&)
+    @check_err(zerr%,"deflate1")
+  WEND
+  '
+  ' Finish the stream, still forcing small buffers:
+  DO
+    LONG{ADD(c_stream%,16)}=1                  ! c_stream->avail_out = 1
+    zerr%=@deflate(c_stream%,z_finish&)
+    EXIT IF zerr%=z_stream_end&
+    @check_err(zerr%,"deflate2")
+  LOOP
+  '
+  zerr%=@deflateend(c_stream%)
+  @check_err(zerr%,"deflateEnd")
+  '
+  ~MFREE(c_stream%)
+RETURN
+> PROCEDURE test_inflate(compr%,comprlen%,uncompr%,uncomprlen%)
+  LOCAL d_stream%
+  LOCAL zerr%
+  LOCAL len%
+  '
+  len%=LEN(hello$)
+  d_stream%=MALLOC(zlib_sizeof_stream%)
+  IF d_stream%=0
+    PRINT "out of memory"
+    QUIT 1
+  ENDIF
+  BCLEAR d_stream%,zlib_sizeof_stream%
+  LONG{ADD(c_stream%,32)}=0                    ! optional; will otherwise use Malloc
+  LONG{ADD(c_stream%,36)}=0
+  '
+  CHAR{uncompr%}="garbage"
+  LONG{ADD(d_stream%,0)}=compr%                ! d_stream->next_in = compr
+  LONG{ADD(d_stream%,4)}=0                     ! d_stream->avail_in = 0
+  LONG{ADD(d_stream%,12)}=uncompr%             ! d_stream->next_out = uncompr%
+  '
+  zerr%=@inflateinit(d_stream%)
+  @check_err(zerr%,"inflateInit")
+  '
+  WHILE LONG{ADD(d_stream%,20)}<uncomprlen% AND LONG{ADD(d_stream%,8)}<comprlen% !  while (d_stream->total_out < uncomprLen)
+    ' force small buffers
+    LONG{ADD(d_stream%,4)}=1                   ! d_stream->avail_in = 1
+    LONG{ADD(d_stream%,16)}=1                  ! d_stream->avail_out = 1
+    zerr%=@inflate(d_stream%,z_no_flush&)
+    EXIT IF zerr%=z_stream_end&
+    @check_err(zerr%,"inflate")
+  WEND
+  '
+  zerr%=@inflateend(d_stream%)
+  @check_err(zerr%,"inflateEnd")
+  '
+  IF CHAR{uncompr%}<>CHAR{V:hello$}
+    PRINT "bad inflate"
+    QUIT 1
+  ENDIF
+  '
+  PRINT "inflate: ";CHAR{uncompr%}
+  '
+  ~MFREE(d_stream%)
+RETURN
+> PROCEDURE test_large_deflate(compr%,comprlen%,uncompr%,uncomprlen%)
+  LOCAL c_stream%
+  LOCAL zerr%
+  '
+  c_stream%=MALLOC(zlib_sizeof_stream%)
+  IF c_stream%=0
+    PRINT "out of memory"
+    QUIT 1
+  ENDIF
+  BCLEAR c_stream%,zlib_sizeof_stream%
+  LONG{ADD(c_stream%,32)}=0                    ! optional; will otherwise use Malloc
+  LONG{ADD(c_stream%,36)}=0
+  '
+  zerr%=@deflateinit(c_stream%,z_best_speed&)
+  @check_err(zerr%,"deflateInit")
+  '
+  LONG{ADD(c_stream%,12)}=compr%               ! c_stream->next_out = compr
+  LONG{ADD(c_stream%,16)}=comprlen%            ! c_stream->avail_out = comprlen
+  '
+  ' at this point, uncompress is still mostly zeroes, so it should compress very well
+  LONG{ADD(c_stream%,0)}=uncompr%              ! c_stream->next_in = uncompr
+  LONG{ADD(c_stream%,4)}=uncomprlen%           ! c_stream->avail_in = uncomprlen
+  zerr%=@deflate(c_stream%,z_no_flush&)
+  @check_err(zerr%,"deflate")
+  IF LONG{ADD(c_stream%,4)}<>0                 ! if (c_stream->avail_in != 0)
+    PRINT "deflate not greedy"
+    QUIT 1
+  ENDIF
+  '
+  ' Feed in already compressed data, and switch to no compression
+  ~@deflateparams(c_stream%,z_no_compression&,z_default_strategy&)
+  LONG{ADD(c_stream%,0)}=compr%                ! c_stream->next_in = compr
+  LONG{ADD(c_stream%,4)}=DIV(comprlen%,2)      ! c_stream->avail_in = comprlen / 2
+  zerr%=@deflate(c_stream%,z_no_flush&)
+  @check_err(zerr%,"deflate2")
+  '
+  ' switch back to compressoin mode
+  ~@deflateparams(c_stream%,z_best_compression&,z_filtered&)
+  LONG{ADD(c_stream%,0)}=uncompr%              ! c_stream->next_in = uncompr
+  LONG{ADD(c_stream%,4)}=uncomprlen%           ! c_stream->avail_in = uncomprlen
+  zerr%=@deflate(c_stream%,z_no_flush&)
+  @check_err(zerr%,"deflate3")
+  zerr%=@deflate(c_stream%,z_finish&)
+  IF zerr%<>z_stream_end&
+    PRINT "deflate should report Z_STREAM_END"
+    QUIT 1
+  ENDIF
+  '
+  zerr%=@deflateend(c_stream%)
+  @check_err(zerr%,"deflateEnd")
+  '
+  ~MFREE(c_stream%)
+RETURN
+> PROCEDURE test_large_inflate(compr%,comprlen%,uncompr%,uncomprlen%)
+  LOCAL d_stream%
+  LOCAL zerr%
+  '
+  d_stream%=MALLOC(zlib_sizeof_stream%)
+  IF d_stream%=0
+    PRINT "out of memory"
+    QUIT 1
+  ENDIF
+  BCLEAR d_stream%,zlib_sizeof_stream%
+  LONG{ADD(c_stream%,32)}=0                    ! optional; will otherwise use Malloc
+  LONG{ADD(c_stream%,36)}=0
+  '
+  CHAR{uncompr%}="garbage"
+  LONG{ADD(d_stream%,0)}=compr%                ! d_stream->next_in = compr
+  LONG{ADD(d_stream%,4)}=comprlen%             ! d_stream->avail_in = comprlen
+  '
+  ~@inflateinit(d_stream%)
+  @check_err(zerr%,"inflateInit")
+  '
+  DO
+    LONG{ADD(d_stream%,12)}=uncompr%           ! d_stream->next_out = uncompr
+    LONG{ADD(d_stream%,16)}=uncomprlen%        ! d_stream->avail_out = uncomprlen%
+    zerr%=@inflate(d_stream%,z_no_flush&)
+    EXIT IF zerr%=z_stream_end&
+    check_err(zerr%,"large inflate")
+  LOOP
+  '
+  zerr%=@inflateend(d_stream%)
+  @check_err(zerr%,"inflateEnd")
+  IF LONG{ADD(d_stream%,20)}<>(ADD(MUL(uncomprlen%,2),DIV(comprlen%,2)))
+    PRINT "bad large inflate: ";LONG{ADD(d_stream%,20)}
+    QUIT 1
+  ENDIF
+  '
+  PRINT "large_inflate: OK"
+  '
+  ~MFREE(d_stream%)
+RETURN
+> PROCEDURE test_flush(compr%,VAR comprlen%)
+  LOCAL c_stream%
+  LOCAL zerr%
+  LOCAL len%
+  '
+  len%=LEN(hello$)
+  c_stream%=MALLOC(zlib_sizeof_stream%)
+  IF c_stream%=0
+    PRINT "out of memory"
+    QUIT 1
+  ENDIF
+  BCLEAR c_stream%,zlib_sizeof_stream%
+  LONG{ADD(c_stream%,32)}=0                    ! optional; will otherwise use Malloc
+  LONG{ADD(c_stream%,36)}=0
+  '
+  zerr%=@deflateinit(c_stream%,z_default_compression&)
+  @check_err(zerr%,"deflateInit")
+  '
+  LONG{ADD(c_stream%,0)}=V:hello$              ! c_stream->next_in = hello
+  LONG{ADD(c_stream%,12)}=compr%               ! c_stream->next_out = compr
+  LONG{ADD(c_stream%,4)}=3                     ! c_stream->avail_in = 3
+  LONG{ADD(c_stream%,16)}=comprlen%            ! c_stream->avail_out = comprlen
+  zerr%=@deflate(c_stream%,z_full_flush&)
+  @check_err(zerr%,"deflate1")
+  '
+  BYTE{ADD(compr%,3)}=ADD(1,BYTE{ADD(compr%,3)})  ! force an error in first compressed block
+  LONG{ADD(c_stream%,4)}=SUB(len%,3)           ! c_stream->avail_in = len - 3
+  '
+  zerr%=@deflate(c_stream%,z_finish&)
+  IF zerr%<>z_stream_end&
+    @check_err(zerr%,"deflate2")
+  ENDIF
+  '
+  zerr%=@deflateend(c_stream%)
+  @check_err(zerr%,"deflateEnd")
+  '
+  comprlen%=LONG{ADD(c_stream%,20)}            ! comprlen  c_stream->total_out
+  '
+  ~MFREE(c_stream%)
+RETURN
+> PROCEDURE test_sync(compr%,comprlen%,uncompr%,uncomprlen%)
+  LOCAL d_stream%
+  LOCAL zerr%
+  '
+  d_stream%=MALLOC(zlib_sizeof_stream%)
+  IF d_stream%=0
+    PRINT "out of memory"
+    QUIT 1
+  ENDIF
+  BCLEAR d_stream%,zlib_sizeof_stream%
+  LONG{ADD(c_stream%,32)}=0                    ! optional; will otherwise use Malloc
+  LONG{ADD(c_stream%,36)}=0
+  '
+  CHAR{uncompr%}="garbage"
+  '
+  LONG{ADD(d_stream%,0)}=compr%                ! d_stream->next_in = compr
+  LONG{ADD(d_stream%,4)}=2                     ! d_stream->avail_in = 2
+  '
+  zerr%=@inflateinit(d_stream%)
+  @check_err(zerr%,"inflateInit")
+  '
+  LONG{ADD(d_stream%,12)}=uncompr%             ! d_stream->next_out = uncompr
+  LONG{ADD(d_stream%,16)}=uncomprlen%          ! d_stream->vail_out = uncomprlen
+  '
+  zerr%=@inflate(d_stream%,z_no_flush&)
+  @check_err(zerr%,"inflate")
+  '
+  LONG{ADD(d_stream%,4)}=SUB(comprlen%,2)      ! d_stream->avail_in = comprlen - 2
+  zerr%=@inflatesync(d_stream%)
+  @check_err(zerr%,"inflateSync")
+  '
+  zerr%=@inflate(d_stream%,z_finish&)
+  IF zerr%<>z_data_error&
+    PRINT "inflate should report Z_DATA_ERROR"
+    QUIT 1
+  ENDIF
+  '
+  zerr%=@inflateend(d_stream%)
+  @check_err(zerr%,"inflateEnd")
+  '
+  PRINT "after inflateSync(): hel";CHAR{uncompr%}
+  '
+  ~MFREE(d_stream%)
+RETURN
+> PROCEDURE test_dict_deflate(compr%,comprlen%)
+  LOCAL c_stream%
+  LOCAL zerr%
+  '
+  c_stream%=MALLOC(zlib_sizeof_stream%)
+  IF c_stream%=0
+    PRINT "out of memory"
+    QUIT 1
+  ENDIF
+  BCLEAR c_stream%,zlib_sizeof_stream%
+  LONG{ADD(c_stream%,32)}=0                    ! optional; will otherwise use Malloc
+  LONG{ADD(c_stream%,36)}=0
+  '
+  zerr%=@deflateinit(c_stream%,z_best_speed&)
+  @check_err(zerr%,"deflateInit")
+  '
+  zerr%=@deflatesetdictionary(c_stream%,V:dictionary$,LEN(dictionary$))
+  @check_err(zerr%,"deflateSetDcitionary")
+  '
+  dictid%=LONG{ADD(c_stream%,48)}              ! dictId = c_stream->adler
+  LONG{ADD(c_stream%,12)}=compr%               ! c_stream->next_out = compr
+  LONG{ADD(c_stream%,16)}=comprlen%            ! c_stream->avail_out = comprlen
+  '
+  LONG{ADD(c_stream%,0)}=V:hello$              ! c_stream->next_in = hello
+  LONG{ADD(c_stream%,4)}=LEN(hello$)           ! c_stream->avail_in = len(hello)
+  '
+  zerr%=@deflate(c_stream%,z_finish&)
+  IF zerr%<>z_stream_end&
+    PRINT "deflet should report Z_STREAM_END"
+    QUIT 1
+  ENDIF
+  '
+  zerr%=@deflateend(c_stream%)
+  @check_err(zerr%,"deflateEnd")
+  '
+  ~MFREE(c_stream%)
+RETURN
+> PROCEDURE test_dict_inflate(compr%,comprlen%,uncompr%,uncomprlen%)
+  LOCAL d_stream%
+  LOCAL zerr%
+  '
+  d_stream%=MALLOC(zlib_sizeof_stream%)
+  IF d_stream%=0
+    PRINT "out of memory"
+    QUIT 1
+  ENDIF
+  BCLEAR d_stream%,zlib_sizeof_stream%
+  LONG{ADD(c_stream%,32)}=0                    ! optional; will otherwise use Malloc
+  LONG{ADD(c_stream%,36)}=0
+  '
+  CHAR{uncompr%}="garbage"
+  LONG{ADD(d_stream%,0)}=compr%                ! d_stream->next_in = compr
+  LONG{ADD(d_stream%,4)}=comprlen%             ! d_stream->avail_in = comprlen
+  '
+  ~@inflateinit(d_stream%)
+  @check_err(zerr%,"inflateInit")
+  '
+  LONG{ADD(d_stream%,12)}=uncompr%             ! d_stream->next_out = uncompr
+  LONG{ADD(d_stream%,16)}=uncomprlen%          ! d_stream->avail_out = uncomprlen
+  '
+  DO
+    zerr%=@inflate(d_stream%,z_no_flush&)
+    EXIT IF zerr%=z_stream_end&
+    IF zerr%=z_need_dict&
+      IF LONG{ADD(d_stream%,48)}<>dictid%
+        PRINT "unexpected dictionary"
+        QUIT 1
+      ENDIF
+      zerr%=@inflatesetdictionary(d_stream%,V:dictionary$,LEN(dictionary$))
+    ENDIF
+    @check_err(zerr%,"inflate with dict")
+  LOOP
+  '
+  zerr%=@inflateend(d_stream%)
+  @check_err(zerr%,"inflateEnd")
+  '
+  IF CHAR{uncompr%}<>CHAR{V:hello$}
+    PRINT "bad inflate with dict"
+    QUIT 1
+  ENDIF
+  '
+  PRINT "inflate with dictionary: ";CHAR{uncompr%}
+  '
+  ~MFREE(d_stream%)
+  '
+RETURN
+> PROCEDURE check_err(zerr%,msg$)
+  IF zerr%<>z_ok&
+    PRINT msg$;" error: ";zerr%
+    QUIT 1
+  ENDIF
+RETURN
+'
+'
+REM #INC zlib.lst
+REM #INC slbload.lst
+REM #INC utils.lst

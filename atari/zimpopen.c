@@ -56,47 +56,47 @@ static int get_cookie(long key, long *value)
 
 #if defined(__MSHORT__) || defined(__PUREC__) || defined(__AHCC__)
 
-static void *_CDECL gcc_memset(void *s, z_int_t val, size_t len)
+static void *__CDECL gcc_memset(void *s, z_int_t val, size_t len)
 {
 	return memset(s, (int)val, len);
 }
 
-static void *_CDECL gcc_memcpy(void *d, const void *s, size_t len)
+static void *__CDECL gcc_memcpy(void *d, const void *s, size_t len)
 {
 	return memcpy(d, s, len);
 }
 
-static void *_CDECL gcc_memchr(const void *s, z_int_t val, size_t len)
+static void *__CDECL gcc_memchr(const void *s, z_int_t val, size_t len)
 {
 	return memchr(s, (int)val, len);
 }
 
-static size_t _CDECL gcc_strlen(const char *s)
+static size_t __CDECL gcc_strlen(const char *s)
 {
 	return strlen(s);
 }
 
-static char *_CDECL gcc_strcpy(char *d, const char *s)
+static char *__CDECL gcc_strcpy(char *d, const char *s)
 {
 	return strcpy(d, s);
 }
 
-static char *_CDECL gcc_strcat(char *d, const char *s)
+static char *__CDECL gcc_strcat(char *d, const char *s)
 {
 	return strcat(d, s);
 }
 
-static z_int_t _CDECL gcc_strcmp(const char *d, const char *s)
+static z_int_t __CDECL gcc_strcmp(const char *d, const char *s)
 {
 	return strcmp(d, s);
 }
 
-static void *_CDECL gcc_malloc(size_t s)
+static void *__CDECL gcc_malloc(size_t s)
 {
 	return malloc(s);
 }
 
-static void _CDECL gcc_free(void *s)
+static void __CDECL gcc_free(void *s)
 {
 	free(s);
 }
@@ -116,7 +116,7 @@ static void _CDECL gcc_free(void *s)
 #define EILSEQ  84      /* Illegal byte sequence      */
 #endif
 
-static z_int_t _CDECL gcc_get_errno(void)
+static z_int_t __CDECL gcc_get_errno(void)
 {
 #if defined(__GNUC__) || defined(_GNU_SOURCE)
 	/* we are just here because of -mshort */
@@ -181,7 +181,7 @@ static z_int_t _CDECL gcc_get_errno(void)
 #endif
 }
 
-static char *_CDECL gcc_strerror(z_int_t e)
+static char *__CDECL gcc_strerror(z_int_t e)
 {
 #if defined(__GNUC__) || defined(_GNU_SOURCE)
 	return strerror((int)e);
@@ -198,7 +198,7 @@ static char *_CDECL gcc_strerror(z_int_t e)
 #define MINTLIB_O_APPEND 0x001000L
 #define MINTLIB_O_EXCL   0x000800L
 
-static z_int_t _CDECL gcc_open(const char *filename, z_int_t access, ...)
+static z_int_t __CDECL gcc_open(const char *filename, z_int_t access, ...)
 {
 	va_list args;
 	int real_access;
@@ -221,57 +221,57 @@ static z_int_t _CDECL gcc_open(const char *filename, z_int_t access, ...)
 	return open(filename, real_access, mode);
 }
 
-static z_int_t _CDECL gcc_close(z_int_t fd)
+static z_int_t __CDECL gcc_close(z_int_t fd)
 {
 	return close((int)fd);
 }
 
-static ssize_t _CDECL gcc_read(z_int_t fd, void *buf, size_t len)
+static ssize_t __CDECL gcc_read(z_int_t fd, void *buf, size_t len)
 {
 	return read((int)fd, buf, len);
 }
 
-static ssize_t _CDECL gcc_write(z_int_t fd, const void *buf, size_t len)
+static ssize_t __CDECL gcc_write(z_int_t fd, const void *buf, size_t len)
 {
 	return write((int)fd, buf, len);
 }
 
-static off_t _CDECL gcc_lseek(z_int_t fd, off_t off, z_int_t whence)
+static off_t __CDECL gcc_lseek(z_int_t fd, off_t off, z_int_t whence)
 {
 	return lseek((int)fd, off, (int)whence);
 }
 
-static FILE *_CDECL gcc_fopen(const char *fname, const char *mode)
+static FILE *__CDECL gcc_fopen(const char *fname, const char *mode)
 {
 	return fopen(fname, mode);
 }
 
-static z_int_t _CDECL gcc_fclose(FILE *fp)
+static z_int_t __CDECL gcc_fclose(FILE *fp)
 {
 	return fclose(fp);
 }
 
-static z_int_t _CDECL gcc_fseek(FILE *fp, long off, z_int_t whence)
+static z_int_t __CDECL gcc_fseek(FILE *fp, long off, z_int_t whence)
 {
 	return fseek(fp, off, (int)whence);
 }
 
-static z_int_t _CDECL gcc_fseeko(FILE *fp, __off_t off, z_int_t whence)
+static z_int_t __CDECL gcc_fseeko(FILE *fp, __off_t off, z_int_t whence)
 {
 	return fseek(fp, off, (int)whence);
 }
 
-static long _CDECL gcc_ftell(FILE *fp)
+static long __CDECL gcc_ftell(FILE *fp)
 {
 	return ftell(fp);
 }
 
-static __off_t _CDECL gcc_ftello(FILE *fp)
+static __off_t __CDECL gcc_ftello(FILE *fp)
 {
 	return ftell(fp);
 }
 
-static z_int_t _CDECL gcc_sprintf(char *buf, const char *format, ...)
+static z_int_t __CDECL gcc_sprintf(char *buf, const char *format, ...)
 {
 	va_list args;
 	int ret;
@@ -281,37 +281,42 @@ static z_int_t _CDECL gcc_sprintf(char *buf, const char *format, ...)
 	return ret;
 }
 
-static z_int_t _CDECL gcc_vsnprintf(char *buf, size_t len, const char *format, va_list args)
+static z_int_t __CDECL gcc_vsnprintf(char *buf, size_t len, const char *format, va_list args)
 {
 	(void)len;
 	return vsprintf(buf, format, args);
 }
 
-static size_t _CDECL gcc_fread(void *buf, size_t size, size_t count, FILE *fp)
+static size_t __CDECL gcc_fread(void *buf, size_t size, size_t count, FILE *fp)
 {
 	return fread(buf, size, count, fp);
 }
 
-static size_t _CDECL gcc_fwrite(const void *buf, size_t size, size_t count, FILE *fp)
+static size_t __CDECL gcc_fwrite(const void *buf, size_t size, size_t count, FILE *fp)
 {
 	return fwrite(buf, size, count, fp);
 }
 
-static z_int_t _CDECL gcc_ferror(FILE *fp)
+static z_int_t __CDECL gcc_ferror(FILE *fp)
 {
 	return ferror(fp);
 }
 
-static z_int_t _CDECL gcc_rand(void)
+static z_int_t __CDECL gcc_rand(void)
 {
 	return rand();
+}
+
+static void __CDECL gcc_srand(uInt seed)
+{
+	srand((unsigned)seed);
 }
 
 #define S(x) zlibslb_funcs.p_##x = gcc_##x
 
 #else
 
-static z_int_t _CDECL get_errno(void)
+static z_int_t __CDECL get_errno(void)
 {
 	return errno;
 }
@@ -366,9 +371,10 @@ long slb_zlib_open(const char *slbpath)
 	S(fwrite);
 	S(ferror);
 	S(rand);
+	S(srand);
 #undef S
 	
-	ret = slb_load(SHAREDLIB, slbpath, ZLIB_VERNUM, &zlib->handle, &zlib->exec);
+	ret = slb_load(ZLIB_SHAREDLIB_NAME, slbpath, ZLIB_VERNUM, &zlib->handle, &zlib->exec);
 	if (ret < 0)
 		return ret;
 
@@ -392,7 +398,7 @@ long slb_zlib_open(const char *slbpath)
 	}
 #if defined(__mcoldfire__)
 	/* if cpu is cf, but library was not compiled for it... */
-	if (!(flags & (1L << 17)) || cpu > 0)
+	if (!(flags & (1L << 17)))
 #else
 	/* if cpu is not cf, but library was compiled for it... */
 	if (flags & (1L << 17))
@@ -410,27 +416,4 @@ long slb_zlib_open(const char *slbpath)
 	}
 	
 	return ret;
-}
-
-
-static long _CDECL slb_unloaded(SLB_HANDLE slb, long fn, short nwords, ...)
-{
-	(void)slb;
-	(void)fn;
-	(void)nwords;
-	(void) Cconws(SHAREDLIB " was already unloaded\r\n");
-	Pterm(1);
-	return -32;
-}
-
-
-void slb_zlib_close(void)
-{
-	SLB *zlib = slb_zlib_get();
-
-	if (!zlib || !zlib->handle)
-		return;
-	slb_unload(zlib->handle);
-	zlib->handle = 0;
-	zlib->exec = slb_unloaded;
 }

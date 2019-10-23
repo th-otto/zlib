@@ -1,0 +1,247 @@
+$M 256000 $F> $P< $%3 $*% $O7 $A0 $E$
+'
+REM #BT=0        !0=68K, 1=CF
+REM #IFT 0
+REM #LIB gbe 68k
+REM #EIT 1
+REM #LIB gbe v4e
+REM #FIT
+'
+' This program creates an empty .ZIP file and includes/adds some others files
+' See the "main" procedure.
+'
+' It is a port of Rajah Lone's example, using zlib.slb instead of deflate.ldg
+'
+' Please verify your LDG installation.
+' C:\mint\slb\zlib.slb
+'
+' Careful: STZIP.PRG is buggy and can't unzip PKZIP created with ZLIB.SLB.
+' Use Info-Zip's unzip instead.
+'
+~FRE(0)
+IF FRE()<128000
+  ~FORM_ALERT(1,"[1][Not enough memory|or memory fragmented.][Quit]")
+  QUIT 1
+ENDIF
+init_start
+init_end
+main
+'
+> PROCEDURE leave
+  mouse_free
+  '
+  ~APPL_EXIT()
+  '
+  QUIT 0
+RETURN
+'
+> PROCEDURE init_start
+  ap_id&=APPL_INIT()
+  '
+  mouse_free
+  '
+  IF ap_id&=-1
+    leave
+  ENDIF
+  '
+  IF VAL(HEX$(INT{GLOBAL}))>=399
+    naes!=TRUE
+  ELSE
+    naes!=FALSE
+  ENDIF
+  IF VAL(HEX$(INT{GLOBAL}))<340
+    old_aes!=TRUE
+  ELSE
+    old_aes!=FALSE
+  ENDIF
+  '
+  magic!=@test_cookie("MagX",dummy%)
+  mint!=@test_cookie("MiNT",dummy%) OR @test_cookie("Gnva",dummy%)
+  nvdi!=@test_cookie("NVDI",dummy%)
+  '
+  IF mint! OR (magic! AND ap_id&>0)
+    multi!=TRUE
+  ELSE
+    multi!=FALSE
+  ENDIF
+  '
+  @declare_variables
+  IF mint!=FALSE
+    RESERVE 96000
+  ENDIF
+  @declare_allocations
+  '
+RETURN
+> PROCEDURE declare_variables
+  '
+  c0$=CHR$(0)
+  '
+  program_path$=CHR$(ADD(GEMDOS(25),65))+":"+DIR$(SUCC(GEMDOS(25)))+"\"
+  IF BYTE{BASEPAGE+256}=96
+    program_path$="..\"
+  ENDIF
+  '
+RETURN
+> PROCEDURE declare_allocations
+RETURN
+> PROCEDURE init_end
+RETURN
+'
+PROCEDURE main
+  LOCAL backup_file$
+  LOCAL zip_handle%
+  '
+  IF @zlib_open
+    '
+    backup_file$=program_path$+"example.zip"
+    '
+    ~FORM_ALERT(1,"[1][Deflate will begin,|please wait until next alert.][ Ok ]")
+    '
+    @fdelete(backup_file$)
+    zip_handle%=@zipopen(backup_file$,0)  ! APPEND_STATUS_CREATE
+    IF zip_handle%>0
+      zipfile_success!=TRUE
+      zipfile_success!=zipfile_success! AND @zipfile_add(zip_handle%,program_path$+"readme.txt",2,"README.TXT")
+      zipfile_success!=zipfile_success! AND @zipfile_add(zip_handle%,program_path$+"twelfth.txt",2,"EXAMPLES/TWELFTH.TXT")
+      zipfile_success!=zipfile_success! AND @zipfile_add(zip_handle%,program_path$+"taming.txt",2,"EXAMPLES/TAMING.TXT")
+      zipfile_success!=zipfile_success! AND @zipfile_add(zip_handle%,program_path$+"much_ado.txt",2,"EXAMPLES/MUCH_ADO.TXT")
+      IF @zipclose(zip_handle%,"")<>zip_ok&
+        ' PRINT "error closing zipfile"
+      ENDIF
+      '
+      IF zipfile_success!
+        ~FORM_ALERT(1,"[1][Success, EXAMPLE.ZIP is created.][ Ok ]")
+      ELSE
+        ~FORM_ALERT(1,"[1][Failure when deflating.][ Ok ]")
+      ENDIF
+    ELSE
+      ~FORM_ALERT(1,"[1][Cannot create|EXAMPLE.ZIP][Quit]")
+    ENDIF
+    '
+    @zlib_close
+  ENDIF
+  @leave
+  '
+RETURN
+'
+PROCEDURE fdelete(path$)
+  path$=path$+c0$
+  ~GEMDOS(65,L:V:path$)
+RETURN
+FUNCTION zipfile_add(zip_handle%,zip_file_name$,zip_deflate_level&,zip_entry_name$)
+  $F%
+  LOCAL zip_buf%          ! buffer for reading the local file
+  LOCAL zip_buf_size%     ! size of that buffer
+  LOCAL size_read%        ! currently number of bytes read from file
+  LOCAL zip_file_handle&  ! handle for file reading
+  LOCAL zip_file_size%    ! uncompressed length of file
+  LOCAL zip_entry_datime% ! DOS style time&date
+  LOCAL zi%               ! zip_fileinfo structure, defined in contrib/minizip/zip.h
+  LOCAL success!          ! return value
+  '
+  IF FRE()<4000
+    ~FRE(0)
+  ENDIF
+  '
+  success!=FALSE
+  '
+  IF FRE()<4000
+    ~FRE(0)
+  ENDIF
+  '
+  zip_buf_size%=96016
+  zip_buf%=MALLOC(zip_buf_size%)
+  zi%=MALLOC(40)
+  IF zip_buf%>0 AND zi%>0
+    zip_file_name$=zip_file_name$+c0$
+    zip_file_handle&=GEMDOS(61,L:V:zip_file_name$,W:0) ! Fopen
+    IF zip_file_handle&>0
+      success!=TRUE
+      '
+      zip_file_size%=GEMDOS(66,L:0,W:zip_file_handle&,W:2) ! Fseek
+      ~GEMDOS(66,L:0,W:zip_file_handle&,W:0)
+      '
+      zip_entry_datime%=0
+      ~GEMDOS(87,L:V:zip_entry_datime%,W:zip_file_handle&,0)  ! Fdatime
+      ' PRINT "timestamp: ";HEX$(zip_entry_datime%,8)
+      zip_entry_datime%=ROL(zip_entry_datime%,16)
+      LONG{ADD(zi%,0)}=SHL(AND(zip_entry_datime%,31),1)    ! tm_sec
+      LONG{ADD(zi%,4)}=AND(SHR(zip_entry_datime%,5),63)    ! tm_min
+      LONG{ADD(zi%,8)}=AND(SHR(zip_entry_datime%,11),31)   ! tm_hour
+      LONG{ADD(zi%,12)}=AND(SHR(zip_entry_datime%,16),31)  ! tm_mday
+      LONG{ADD(zi%,16)}=PRED(AND(SHR(zip_entry_datime%,21),15))  ! tm_mon
+      LONG{ADD(zi%,20)}=ADD(AND(SHR(zip_entry_datime%,25),127),1980) ! tm_year
+      LONG{ADD(zi%,24)}=zip_entry_datime%
+      LONG{ADD(zi%,24)}=0
+      LONG{ADD(zi%,28)}=0
+      LONG{ADD(zi%,32)}=0
+      ' PRINT "date ";ADD(LONG{ADD(fi%,20)},1900);"/";SUCC(LONG{ADD(fi%,16)});"/";LONG{ADD(fi%,12)}
+      ' PRINT "time ";LONG{ADD(fi%,8)};":";LONG{ADD(fi%,4)};":";LONG{ADD(fi%,0)}
+      zlib_ret&=@zipopennewfileinzip(zip_handle%,zip_entry_name$,zi%,0,0,0,0,"",z_deflated&,zip_deflate_level&)
+      IF zlib_ret&=zip_ok&
+        REPEAT
+          zlib_ret&=zip_ok&
+          size_read%=GEMDOS(63,W:zip_file_handle&,L:zip_buf_size%,L:zip_buf%)
+          '
+          IF size_read%<0
+            zlib_ret&=z_errno&
+            ' PRINT "error in reading ";zip_file_name$
+          ENDIF
+          IF size_read%>0
+            zlib_ret&=@zipwriteinfileinzip(zip_handle%,zip_buf%,size_read%)
+            IF zlib_ret&<0
+              ' PRINT "error in writing ";zip_file_name$;" in the zipfile"
+            ENDIF
+          ENDIF
+          '
+        UNTIL zlib_ret&<>zip_ok& OR size_read%<=0
+      ENDIF
+      ~GEMDOS(62,W:zip_file_handle&) ! Fclose
+      IF zlib_ret&<0
+        ~zipclosefileinzip(zip_handle%)
+        zlib_ret&=zip_errno&
+      ELSE
+        zlib_ret&=@zipclosefileinzip(zip_handle%)
+        IF zlib_ret&<>zip_ok&
+          ' PRINT "error closing ";zip_file_name$;" in the zipfile"
+        ENDIF
+      ENDIF
+      IF zlib_ret&<0
+        ' PRINT "zlib_ret = ";zlib_ret&
+        success!=FALSE
+      ENDIF
+    ELSE
+      ' PRINT "can't open ";zip_file_name$;": ";zip_file_handle&
+    ENDIF
+  ENDIF
+  ~MFREE(zip_buf%)
+  ~MFREE(zi%)
+  RETURN success!
+ENDFUNC
+'
+> FUNCTION zlib_open
+  $F%
+  LOCAL ret%
+  '
+  ret%=@slb_zlib_open("")
+  IF ret%<0
+    ~FORM_ALERT(1,"[1][ZLIB.SLB not found|"+STR$(ret%)+"][Shit]")
+    RETURN FALSE
+  ENDIF
+  RETURN TRUE
+ENDFUNC
+> PROCEDURE zlib_close
+  @slb_zlib_close
+RETURN
+'
+> PROCEDURE mouse_busy
+  ~GRAF_MOUSE(2,0)
+RETURN
+> PROCEDURE mouse_free
+  ~GRAF_MOUSE(0,0)
+RETURN
+'
+'
+REM #INC zlib.lst
+REM #INC slbload.lst
+REM #INC utils.lst

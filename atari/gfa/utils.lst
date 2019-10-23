@@ -1,0 +1,56 @@
+'
+' other utilities
+'
+> FUNCTION shel_envrn$(get_env$)
+  LOCAL get_env%
+  LOCAL ret_env$
+  '
+  ret_env$=""
+  IF RIGHT$(get_env$)<>"="
+    get_env$=get_env$+"="
+  ENDIF
+  get_env$=get_env$+CHR$(0)
+  get_env%=0
+  '
+  INT{ADD(GCONTRL,2)}=0
+  INT{ADD(GCONTRL,4)}=1
+  INT{ADD(GCONTRL,6)}=2
+  INT{ADD(GCONTRL,8)}=0
+  '
+  LONG{ADDRIN}=V:get_env%
+  LONG{ADD(ADDRIN,4)}=V:get_env$
+  '
+  GEMSYS 125
+  '
+  IF get_env%<>0
+    ret_env$=CHAR{get_env%}
+  ENDIF
+  RETURN ret_env$
+ENDFUNC
+> FUNCTION test_cookie(cookie_name$,VAR cookie_value%)
+  $F%
+  LOCAL read_cook%,nom_cook%,read_val%,cookie%
+  '
+  cookie_value%=0
+  IF GEMDOS(340,W:&HFFFF,L:1,L:0)=0
+    IF GEMDOS(340,W:8,L:CVL(cookie_name$),L:V:cookie_value%)=0
+      RETURN TRUE
+    ENDIF
+  ELSE
+    nom_cook%=CVL(cookie_name$)
+    cookie%=LPEEK(&H5A0)
+    '
+    IF cookie%<>0
+      REPEAT
+        read_cook%=LPEEK(cookie%)
+        read_val%=LPEEK(ADD(cookie%,4))
+        ADD cookie%,8
+      UNTIL read_cook%=0 OR read_cook%=nom_cook%
+      IF read_cook%=nom_cook%
+        cookie_value%=read_val%
+        RETURN TRUE
+      ENDIF
+    ENDIF
+  ENDIF
+  RETURN FALSE
+ENDFUNC

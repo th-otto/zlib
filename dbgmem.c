@@ -23,6 +23,11 @@ static FILE *trc_file;
 #endif
 #endif
 
+#undef FALSE
+#undef TRUE
+#define FALSE 0
+#define TRUE 1
+
 #define printnull(p) ((p) ? (p) : "(null)")
 
 

@@ -1,0 +1,1143 @@
+'
+' ZLIB functions
+' global variables:
+' - zlib_slb%: handle for the library
+' - zlib_vernum&: version this lib was designed for
+' - zlib_version$: version this lib was designed for,
+'   passed to some exported functions
+' - zlib_sizeof_stream%: dito
+' - zalloc%: C-style callback function used by zlib
+' - zfree%: C-style callback function used by zlib
+'
+FUNCTION slb_zlib_open(slbpath$)                     ! return <> 0 on error
+  $F%
+  LOCAL flags%
+  LOCAL dummy%
+  LOCAL ret%
+  LOCAL zlib_struct%
+  '
+  LOCAL strcat%,strcmp%,strcpy%,strlen%,memchr%,memcpy%,memset%,malloc%,free%
+  LOCAL func%
+  '
+  IF zlib_slb%>0
+    ' already loaded
+    RETURN 0
+  ENDIF
+  '
+  zlib_slb%=@slb_load("zlib.slb",slbpath$,0,256)
+  IF zlib_slb%<=0
+    RETURN zlib_slb%
+  ENDIF
+  zlib_vernum&=&H12B0
+  zlib_version$="1.2.11"
+  zlib_sizeof_stream%=56
+  '
+  REM #INL minilib%
+  INLINE minilib%,4368
+  func%=minilib%
+  strcat%=func%
+  ADD func%,36
+  strcmp%=func%
+  ADD func%,58
+  strcpy%=func%
+  ADD func%,18
+  strlen%=func%
+  ADD func%,24
+  memchr%=func%
+  ADD func%,38
+  memcpy%=func%
+  ADD func%,32
+  memset%=func%
+  ADD func%,38
+  strerror%=func%
+  ADD func%,4076
+  malloc%=func%
+  ADD func%,24
+  free%=func%
+  ADD func%,24
+  ' PRINT "funclen ";func%-minilib%
+  '
+  zlib_struct%=ADD(zlib_slb%,144)
+  LONG{ADD(zlib_struct%,0)}=256                           ! sizeof(zlib_struct)
+  LONG{ADD(zlib_struct%,4)}=4                             ! sizeof(int)
+  LONG{ADD(zlib_struct%,8)}=zlib_vernum&                  ! ZLIB_VERNUM: 1.2.11
+  LONG{ADD(zlib_struct%,12)}=memset%                      ! memset
+  LONG{ADD(zlib_struct%,16)}=memcpy%                      ! memcpy
+  LONG{ADD(zlib_struct%,20)}=memchr%                      ! memchr
+  LONG{ADD(zlib_struct%,24)}=strlen%                      ! strlen
+  LONG{ADD(zlib_struct%,28)}=strcpy%                      ! strcpy
+  LONG{ADD(zlib_struct%,32)}=strcat%                      ! strcat
+  LONG{ADD(zlib_struct%,36)}=strcmp%                      ! strcmp
+  LONG{ADD(zlib_struct%,40)}=malloc%                      ! malloc
+  LONG{ADD(zlib_struct%,44)}=free%                        ! free
+  LONG{ADD(zlib_struct%,48)}=0                            ! get_errno; no longer needed
+  LONG{ADD(zlib_struct%,52)}=strerror%                    ! strerror
+  LONG{ADD(zlib_struct%,56)}=0                            ! open; no longer needed
+  LONG{ADD(zlib_struct%,60)}=0                            ! close; no longer needed
+  LONG{ADD(zlib_struct%,64)}=0                            ! read; no longer needed
+  LONG{ADD(zlib_struct%,68)}=0                            ! write; no longer needed
+  LONG{ADD(zlib_struct%,72)}=0                            ! lseek; no longer needed
+  LONG{ADD(zlib_struct%,76)}=0                            ! fopen; no longer needed
+  LONG{ADD(zlib_struct%,80)}=0                            ! fclose; no longer needed
+  LONG{ADD(zlib_struct%,84)}=0                            ! fseek; no longer needed
+  LONG{ADD(zlib_struct%,88)}=0                            ! fseeko; no longer needed
+  LONG{ADD(zlib_struct%,92)}=0                            ! ftell; no longer needed
+  LONG{ADD(zlib_struct%,96)}=0                            ! ftello; no longer needed
+  LONG{ADD(zlib_struct%,100)}=0                           ! sprintf; no longer needed
+  LONG{ADD(zlib_struct%,104)}=0                           ! vsnprintf; currently not supported in GFA; only referenced by gzvprintf
+  LONG{ADD(zlib_struct%,108)}=0                           ! fread; no longer needed
+  LONG{ADD(zlib_struct%,112)}=0                           ! fwrite; no longer needed
+  LONG{ADD(zlib_struct%,116)}=0                           ! ferror; no longer needed
+  LONG{ADD(zlib_struct%,120)}=0                           ! rand; no longer needed
+  ' 124-256 reserved for extensions
+  '
+  flags%=@zlib_slb_control(0,0)
+  IF BTST(HARDWARE?,0)
+    ' should be able to use a 000 library, anyway
+  ELSE
+    IF AND(SHL(1,16),flags%)<>0
+      ' cpu is not 020+, but library was compiled for it
+      @slb_zlib_close
+      RETURN -25 ! EINVAL
+    ENDIF
+  ENDIF
+  IF BTST(HARDWARE?,4)
+    IF AND(flags%,SHL(1,17))=0
+      ' running on CF, but library was not compiled for it
+      @slb_zlib_close
+      RETURN -25 ! EINVAL
+    ENDIF
+  ELSE
+    IF AND(flags%,SHL(1,17))<>0
+      ' running on 68k, but library was compiled for CF
+      @slb_zlib_close
+      RETURN -25 ! EINVAL
+    ENDIF
+  ENDIF
+  '
+  ret%=@zlib_slb_control(1,zlib_struct%)
+  IF ret%<0
+    @slb_zlib_close
+  ENDIF
+  '
+  REM #DC+
+  Z_NO_FLUSH&=0
+  Z_PARTIAL_FLUSH&=1
+  Z_SYNC_FLUSH&=2
+  Z_FULL_FLUSH&=3
+  Z_FINISH&=4
+  Z_BLOCK&=5
+  Z_TREES&=6
+  '
+  Z_OK&=0
+  Z_STREAM_END&=1
+  Z_NEED_DICT&=2
+  Z_ERRNO&=-1
+  Z_STREAM_ERROR&=-2
+  Z_DATA_ERROR&=-3
+  Z_MEM_ERROR&=-4
+  Z_BUF_ERROR&=-5
+  Z_VERSION_ERROR&=-6
+  '
+  Z_NO_COMPRESSION&=0
+  Z_BEST_SPEED&=1
+  Z_BEST_COMPRESSION&=9
+  Z_DEFAULT_COMPRESSION&=-1
+  '
+  Z_FILTERED&=1
+  Z_HUFFMAN_ONLY&=2
+  Z_RLE&=3
+  Z_FIXED&=4
+  Z_DEFAULT_STRATEGY&=0
+  '
+  Z_BINARY&=0
+  Z_TEXT&=1
+  Z_ASCII&=1
+  Z_UNKNOWN&=2
+  '
+  Z_DEFLATED&=8
+  Z_BZIP2ED&=12
+  Z_NULL%=0
+  '
+  ZIP_OK&=0
+  ZIP_EOF&=0
+  ZIP_ERRNO&=-1 ! Z_ERRNO
+  ZIP_PARAMERROR&=-102
+  ZIP_BADZIPFILE&=-103
+  ZIP_INTERNALERROR&=-104
+  ' APPEND_STATUS_CREATE&=0
+  ' APPEND_STATUS_CREATEAFTER&=1
+  ' APPEND_STATUS_ADDINZIP&=2
+  '
+  REM #DC-
+  '
+  RETURN ret%
+ENDFUNC
+> PROCEDURE slb_zlib_close
+  IF zlib_slb%>0
+    @slb_unload(zlib_slb%)
+    zlib_slb%=0
+  ENDIF
+RETURN
+> FUNCTION zlib_slb_control(fn%,arg%)                  ! internal
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:0,L:2,L:fn%,L:arg%)
+ENDFUNC
+'
+' exported functions from zlib.slb
+' see the documentation that comes with ZLIB on how to use them
+'
+' Not all of them are currently supported in GFA
+' (notably the printf style functions that take a variable number of arguments)
+' Also note that most of the 64bit functions are not really supported on Atari,
+' since the OS lacks support of using 64bit file offsets.
+'
+' Note that some of the functions have a different order of arguments than
+' their C counterparts. This happens because some arguments have to be of VAR
+' type, and in GFA they must come last.
+'
+' currently not supported in GFA:
+' - gzprintf (variable arguments)
+' - gzvprintf (variable arguments)
+' - unzopen2 (needs C-style callbacks)
+' - unzopen2_64 (needs C-style callbacks)
+' - zipopen2 (needs C-style callbacks)
+' - zipopen2_64 (needs C-style callbacks)
+' - adler32_combine64 (needs 64bit argument)
+' - crc32_combine64 (needs 64bit argument)
+' - gzoffset64 (returns 64bit value)
+' - gzseek64 (returns 64bit value)
+' - gztell64 (returns 64bit value)
+'
+' C-Structure of a z_stream used by some functions:
+' typedef struct z_stream_s {
+'     const Bytef *next_in;     /* next input byte */
+'     uInt     avail_in;  /* number of bytes available at next_in */
+'     uLong    total_in;  /* total number of input bytes read so far */
+'
+'     Bytef    *next_out; /* next output byte will go here */
+'     uInt     avail_out; /* remaining free space at next_out */
+'     uLong    total_out; /* total number of bytes output so far */
+'
+'     const char *msg;  /* last error message, NULL if no error */
+'     struct internal_state FAR *state; /* not visible by applications */
+'
+'     alloc_func zalloc;  /* used to allocate the internal state */
+'     free_func  zfree;   /* used to free the internal state */
+'     voidpf     opaque;  /* private data object passed to zalloc and zfree */
+'
+'     z_int_t data_type;  /* best guess about the data type: binary or text
+'                            for deflate, or the decoding state for inflate */
+'     uLong   adler;      /* Adler-32 or CRC-32 value of the uncompressed data */
+'     uLong   reserved;   /* reserved for future use */
+' } z_stream;
+'
+' The shared library was compiled by GCC, so all members are 32 bit
+'
+> FUNCTION adler32(adler%,buf%,len%)
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:1,L:3,L:adler%,L:buf%,L:len%)
+ENDFUNC
+> FUNCTION compress(source%,sourcelen%,dest%,VAR destlen%)       ! source<->dest reversed
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:2,L:4,L:dest%,L:V:destlen%,L:source%,L:sourcelen%)
+ENDFUNC
+> FUNCTION crc32(crc%,buf%,len%)
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:3,L:3,L:crc%,L:buf%,L:len%)
+ENDFUNC
+> FUNCTION deflate(strm%,flush&)
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:4,L:2,L:strm%,L:flush&)
+ENDFUNC
+> FUNCTION deflatecopy(dest%,source%)
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:5,L:2,L:dest%,L:source%)
+ENDFUNC
+> FUNCTION deflateend(strm%)
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:6,L:1,L:strm%)
+ENDFUNC
+> FUNCTION deflateinit2(strm%,level&,method%,windowbits&,memlevel&,strategy&)
+  $F%
+  LOCAL version$
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  version$=zlib_version$+CHR$(0)
+  RETURN C:exec%(L:LONG{zlib_slb%},L:7,L:8,L:strm%,L:level&,L:method%,L:windowbits&,L:memlevel&,L:strategy&,L:V:version$,L:zlib_sizeof_stream%)
+ENDFUNC
+> FUNCTION deflateinit(strm%,level&)
+  $F%
+  LOCAL version$
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  version$=zlib_version$+CHR$(0)
+  RETURN C:exec%(L:LONG{zlib_slb%},L:8,L:4,L:strm%,L:level&,L:V:version$,L:zlib_sizeof_stream%)
+ENDFUNC
+> FUNCTION deflateparams(strm%,level&,strategy&)
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:9,L:3,L:strm%,L:level&,L:strategy&)
+ENDFUNC
+> FUNCTION deflatereset(strm%)
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:10,L:1,L:strm%)
+ENDFUNC
+> FUNCTION deflatesetdictionary(strm%,dictionary%,dictlength%)
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:11,L:3,L:strm%,L:dictionary%,L:dictlength%)
+ENDFUNC
+> FUNCTION gzclose(file%)
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:12,L:1,L:file%)
+ENDFUNC
+> FUNCTION gzdopen(fd%,mode$)
+  $F%
+  LOCAL exec%
+  mode$=mode$+CHR$(0)
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:13,L:2,L:fd%,L:V:mode$)
+ENDFUNC
+> FUNCTION gzerror$(file%,VAR errnum%)
+  LOCAL exec%
+  LOCAL ret%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  ret%=C:exec%(L:LONG{zlib_slb%},L:14,L:2,L:file%,L:V:errnum%)
+  IF ret%<>0
+    RETURN CHAR{ret%}
+  ENDIF
+  RETURN ""
+ENDFUNC
+> FUNCTION gzflush(file%,flush&)
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:15,L:2,L:file%,L:flush&)
+ENDFUNC
+> FUNCTION gzopen(path$,mode$)
+  $F%
+  LOCAL exec%
+  path$=path$+CHR$(0)
+  mode$=mode$+CHR$(0)
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:16,L:2,L:V:path$,L:V:mode$)
+ENDFUNC
+> FUNCTION gzread(file%,buf%,len%)
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:17,L:3,L:file%,L:buf%,L:len%)
+ENDFUNC
+> FUNCTION gzwrite(file%,buf%,len%)
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:18,L:3,L:file%,L:buf%,L:len%)
+ENDFUNC
+> FUNCTION inflate(strm%,flush&)
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:19,L:2,L:strm%,L:flush&)
+ENDFUNC
+> FUNCTION inflateend(strm%)
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:20,L:1,L:strm%)
+ENDFUNC
+> FUNCTION inflateinit2(strm%,windowbits&)
+  $F%
+  LOCAL version$
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  version$=zlib_version$+CHR$(0)
+  RETURN C:exec%(L:LONG{zlib_slb%},L:21,L:4,L:strm%,L:windowbits&,L:V:version$,L:zlib_sizeof_stream%)
+ENDFUNC
+> FUNCTION inflateinit(strm%)
+  $F%
+  LOCAL version$
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  version$=zlib_version$+CHR$(0)
+  RETURN C:exec%(L:LONG{zlib_slb%},L:22,L:3,L:strm%,L:V:version$,L:zlib_sizeof_stream%)
+ENDFUNC
+> FUNCTION inflatereset(strm%)
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:23,L:1,L:strm%)
+ENDFUNC
+> FUNCTION inflatesetdictionary(strm%,dictionary%,dictlength%)
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:24,L:3,L:strm%,L:dictionary%,L:dictlength%)
+ENDFUNC
+> FUNCTION inflatesync(strm%)
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:25,L:1,L:strm%)
+ENDFUNC
+> FUNCTION uncompress(source%,sourcelen%,dest%,VAR destlen%)       ! source<->dest reversed
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:26,L:4,L:dest%,L:V:destlen%,L:source%,L:sourcelen%)
+ENDFUNC
+> FUNCTION zlibversion$
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN CHAR{C:exec%(L:LONG{zlib_slb%},L:27,L:0)}
+ENDFUNC
+> FUNCTION gzprintf(file%,format$)
+  $F%
+  LOCAL exec%
+  format$=format$+CHR$(0)
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:28,L:20,L:file%,L:V:format$)        ! not supported; needs variable arguments
+ENDFUNC
+> FUNCTION gzputc(file%,c|)
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:29,L:2,L:file%,L:c|)
+ENDFUNC
+> FUNCTION gzgetc(file%)
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:30,L:1,L:file%)
+ENDFUNC
+> FUNCTION gzgetc_(file%)                                                ! backward compatibility
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:161,L:1,L:file%)
+ENDFUNC
+> FUNCTION gzseek(file%,offset%,whence&)
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:31,L:3,L:file%,L:offset%,L:whence&)
+ENDFUNC
+> FUNCTION gzrewind(file%)
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:32,L:1,L:file%)
+ENDFUNC
+> FUNCTION gztell(file%)
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:33,L:1,L:file%)
+ENDFUNC
+> FUNCTION gzeof(file%)
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:34,L:1,L:file%)<>0
+ENDFUNC
+> FUNCTION gzsetparams(file%,level&,strategy&)
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:35,L:3,L:file%,L:level&,L:strategy&)
+ENDFUNC
+> FUNCTION zerror$(errnum%)
+  LOCAL exec%
+  LOCAL ret%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  ret%=C:exec%(L:LONG{zlib_slb%},L:36,L:1,L:errnum%)
+  IF ret%<>0
+    RETURN CHAR{ret%}
+  ENDIF
+  RETURN ""
+ENDFUNC
+> FUNCTION inflatesyncpoint(strm%)
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:37,L:1,L:strm%)
+ENDFUNC
+> FUNCTION get_crc_table
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:38,L:0)
+ENDFUNC
+> FUNCTION compress2(dest%,source%,sourcelen%,level&,VAR destlen%)
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:39,L:5,L:dest%,L:V:destlen%,L:source%,L:sourcelen%,L:level&)
+ENDFUNC
+> FUNCTION gzputs(file%,s$)
+  $F%
+  LOCAL exec%
+  s$=s$+CHR$(0)
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:40,L:2,L:file%,L:V:s$)
+ENDFUNC
+> FUNCTION gzgets(file%,buf%,len%)
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:41,L:3,L:file%,L:buf%,L:len%)
+ENDFUNC
+> FUNCTION inflatecopy(dest%,source%)
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:42,L:2,L:dest%,L:source%)
+ENDFUNC
+> FUNCTION inflatebackinit_(strm%,windowbits&,window&)
+  $F%
+  LOCAL version$
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  version$=zlib_version$+CHR$(0)
+  RETURN C:exec%(L:LONG{zlib_slb%},L:43,L:5,L:strm%,L:windowbits&,L:window&,L:V:version$,L:zlib_sizeof_stream%)
+ENDFUNC
+> FUNCTION inflateback(strm%,in%,in_desc%,out%,out_desc%)           ! TODO: handle callbacks
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:44,L:5,L:strm%,L:in%,L:in_desc%,L:out%,L:out_desc%)
+ENDFUNC
+> FUNCTION inflatebackend(strm%)
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:45,L:1,L:strm%)
+ENDFUNC
+> FUNCTION compressbound(sourcelen%)
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:46,L:1,L:sourcelen%)
+ENDFUNC
+> FUNCTION deflatebound(strm%,sourcelen%)
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:47,L:2,L:strm%,L:sourcelen%)
+ENDFUNC
+> PROCEDURE gzclearerr(file%)
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  ~C:exec%(L:LONG{zlib_slb%},L:48,L:1,L:file%)
+RETURN
+> FUNCTION gzungetc(c|,file%)
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:49,L:2,L:c|,L:file%)
+ENDFUNC
+> FUNCTION zlibcompileflags
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:50,L:0)
+ENDFUNC
+> FUNCTION deflateprime(strm%,bits&,value&)
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:51,L:3,L:strm%,L:bits&,L:value&)
+ENDFUNC
+> FUNCTION deflatepending(strm%,VAR pending%,bits%)
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:52,L:3,L:strm%,L:V:pending%,L:V:bits%)
+ENDFUNC
+'
+> FUNCTION unzopen(path$)
+  $F%
+  LOCAL exec%
+  path$=path$+CHR$(0)
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:61,L:1,L:V:path$)
+ENDFUNC
+> FUNCTION unzclose(file%)
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:62,L:1,L:file%)
+ENDFUNC
+> FUNCTION unzgetglobalinfo(file%,pglobal_info%)
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:63,L:2,L:file%,L:pglobal_info%)
+ENDFUNC
+> FUNCTION unzgetcurrentfileinfo(file%,pfile_info%,extrafield%,extrafieldbuffersize%,commentbuffersize%,VAR filename$,comment$)
+  $F%
+  LOCAL exec%
+  LOCAL ret%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  filename$=STRING$(255,0)
+  comment$=STRING$(commentbuffersize%,0)
+  ret%=C:exec%(L:LONG{zlib_slb%},L:64,L:8,L:file%,L:pfile_info%,L:V:filename$,L:255,L:extrafield%,L:extrafieldbuffersize%,L:V:comment$,L:255)
+  filename$=CHAR{V:filename$}
+  comment$=CHAR{V:comment$}
+  RETURN ret%
+ENDFUNC
+> FUNCTION unzgotofirstfile(file%)
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:65,L:1,L:file%)
+ENDFUNC
+> FUNCTION unzgotonextfile(file%)
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:66,L:1,L:file%)
+ENDFUNC
+> FUNCTION unzopencurrentfile(file%)
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:67,L:1,L:file%)
+ENDFUNC
+> FUNCTION unzreadcurrentfile(file%,buf%,len%)
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:68,L:3,L:file%,L:buf%,L:len%)
+ENDFUNC
+> FUNCTION unzopencurrentfile3(file%,raw!,password$,VAR method%,level%)
+  $F%
+  LOCAL exec%
+  password$=password$+CHR$(0)
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:69,L:5,L:file%,L:V:method%,L:V:level%,L:raw!,L:V:password$)
+ENDFUNC
+> FUNCTION unztell(file%)
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:70,L:1,L:file%)
+ENDFUNC
+> FUNCTION unzeof(file%)
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:71,L:1,L:file%)<>0
+ENDFUNC
+> FUNCTION unzclosecurrentfile(file%)
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:72,L:1,L:file%)
+ENDFUNC
+> FUNCTION unzgetglobalcomment(file%,comment%,sizebuf%)
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:73,L:3,L:file%,L:comment%,L:sizebuf%)
+ENDFUNC
+> FUNCTION unzstringfilenamecompare(filename1$,filename2$,icasesensitivity&)
+  $F%
+  LOCAL exec%
+  filename1$=filename1$+CHR$(0)
+  filename2$=filename2$+CHR$(0)
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:74,L:3,L:V:filename1$,L:V:filename2$,L:icasesensitivity&)
+ENDFUNC
+> FUNCTION unzlocatefile(file%,szfilename$,icasesensitivity&)
+  $F%
+  LOCAL exec%
+  szfilename$=szfilename$+CHR$(0)
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:75,L:3,L:file%,L:V:szfilename$,L:icasesensitivity&)
+ENDFUNC
+> FUNCTION unzgetlocalextrafield(file%,buf%,len%)
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:76,L:3,L:file%,L:buf%,L:len%)
+ENDFUNC
+> FUNCTION unzopen2(path%,pzlib_filefunc_def%)                     ! not supported
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:77,L:2,L:path%,L:pzlib_filefunc_def%)
+ENDFUNC
+> FUNCTION unzopencurrentfile2(file%,raw!,VAR method%,level%)
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:78,L:4,L:file%,L:V:method%,L:V:level%,L:raw!)
+ENDFUNC
+> FUNCTION unzopencurrentfilepassword(file%,password$)
+  $F%
+  LOCAL exec%
+  password$=password$+CHR$(0)
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:79,L:2,L:file%,L:V:password$)
+ENDFUNC
+'
+REM #DC+
+append_status_create&=0
+append_status_createafter&=1
+append_status_addinzip&=2
+REM #DC-
+> FUNCTION zipopen(pathname$,append&)
+  $F%
+  LOCAL exec%
+  pathname$=pathname$+CHR$(0)
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:80,L:2,L:V:pathname$,L:append&)
+ENDFUNC
+> FUNCTION zipopennewfileinzip(file%,filename$,zipfi%,extrafield_local%,size_extrafield_local%,extrafield_global%,size_extrafield_global%,comment$,method&,level&)
+  $F%
+  LOCAL exec%
+  LOCAL comment%
+  filename$=filename$+CHR$(0)
+  IF comment$=""
+    comment%=0
+  ELSE
+    comment$=comment$+CHR$(0)
+    comment%=V:comment$
+  ENDIF
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:81,L:10,L:file%,L:V:filename$,L:zipfi%,L:extrafield_local%,L:size_extrafield_local%,L:extrafield_global%,L:size_extrafield_global%,L:comment%,L:method&,L:level&)
+ENDFUNC
+> FUNCTION zipwriteinfileinzip(file%,buf%,len%)
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:82,L:3,L:file%,L:buf%,L:len%)
+ENDFUNC
+> FUNCTION zipclosefileinzip(file%)
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:83,L:1,L:file%)
+ENDFUNC
+> FUNCTION zipclose(file%,global_comment$)
+  $F%
+  LOCAL exec%
+  LOCAL comment%
+  IF global_comment$=""
+    comment%=0
+  ELSE
+    global_comment$=global_comment$+CHR$(0)
+    comment%=V:global_comment$
+  ENDIF
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:84,L:2,L:file%,L:comment%)
+ENDFUNC
+> FUNCTION zipopennewfileinzip2(file%,filename$,zipfi%,extrafield_local%,size_extrafield_local%,extrafield_global%,size_extrafield_global%,comment$,method&,level&,raw!)
+  $F%
+  LOCAL exec%
+  LOCAL comment%
+  IF comment$=""
+    comment%=0
+  ELSE
+    comment$=comment$+CHR$(0)
+    comment%=V:comment$
+  ENDIF
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:86,L:11,L:file%,L:V:filename$,L:zipfi%,L:extrafield_local%,L:size_extrafield_local%,L:extrafield_global%,L:size_extrafield_global%,L:comment%,L:method&,L:level&,L:raw!)
+ENDFUNC
+> FUNCTION zipclosefileinzipraw(file%,uncompressed_size%,crc32%)
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:87,L:3,L:file%,L:uncompressed_size%,L:crc32%)
+ENDFUNC
+> FUNCTION zipopen2(pathname$,append&,pzlib_filefunc_def%,VAR globalcomment$)                     ! not supported
+  $F%
+  LOCAL exec%
+  pathname$=pathname$+CHR$(0)
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:88,L:4,L:V:pathname$,L:append&,L:V:globalcomment$,L:pzlib_filefunc_def%)
+ENDFUNC
+> FUNCTION zipopennewfileinzip3(file%,filename$,zipfi%,extra_local%,size_local%,extra_global%,size_global%,comment$,method&,level&,raw!,windowbits&,memlevel&,strategy&,password$,crcforcrypting%)
+  $F%
+  LOCAL exec%
+  LOCAL comment%
+  LOCAL password%
+  IF comment$=""
+    comment%=0
+  ELSE
+    comment$=comment$+CHR$(0)
+    comment%=V:comment$
+  ENDIF
+  IF password$=""
+    password%=0
+  ELSE
+    password$=password$+CHR$(0)
+    password%=V:password$
+  ENDIF
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:89,L:16,L:file%,L:V:filename$,L:zipfi%,L:extra_local%,L:size_local%,L:extra_global%,L:size_global%,L:comment%,L:method&,L:level&,L:raw!,L:windowbits&,L:memlevel&,L:strategy&,L:password%,L:crcforcrypting%)
+ENDFUNC
+'
+> FUNCTION unzgetfilepos(file%,file_pos%)                ! NOTE: file_pos% points to structure
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:100,L:2,L:file%,L:file_pos%)
+ENDFUNC
+> FUNCTION unzgotofilepos(file%,file_pos%)               ! NOTE: file_pos% points to structure
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:101,L:2,L:file%,L:file_pos%)
+ENDFUNC
+> FUNCTION unzopen64(path$)
+  $F%
+  LOCAL exec%
+  path$=path$+CHR$(0)
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:120,L:1,L:V:path$)
+ENDFUNC
+> FUNCTION unzopen2_64(path$,pzlib_filefunc_def%)                     ! not supported
+  $F%
+  LOCAL exec%
+  path$=path$+CHR$(0)
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:121,L:2,L:V:path$,L:pzlib_filefunc_def%)
+ENDFUNC
+> FUNCTION unzgetglobalinfo64(file%,pglobal_info%)
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:122,L:2,L:file%,L:pglobal_info%)
+ENDFUNC
+> FUNCTION unzgetcurrentfileinfo64(file%,pfile_info%,extrafield%,extrafieldbuffersize%,commentbuffersize%,VAR filename$,comment$)
+  $F%
+  LOCAL exec%
+  LOCAL ret%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  filename$=STRING$(255,0)
+  comment$=STRING$(commentbuffersize%,0)
+  ret%=C:exec%(L:LONG{zlib_slb%},L:124,L:8,L:file%,L:pfile_info%,L:V:filename$,L:255,L:extrafield%,L:extrafieldbuffersize%,L:V:comment$,L:255)
+  filename$=CHAR{V:filename$}
+  comment$=CHAR{V:comment$}
+  RETURN ret%
+ENDFUNC
+> FUNCTION unzgetcurrentfilezstreampos64(file%)
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:125,L:1,L:file%)
+ENDFUNC
+> FUNCTION unztell64(file%)
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:126,L:1,L:file%)
+ENDFUNC
+> FUNCTION unzgetfilepos64(file%,file_pos%)                ! NOTE: file_pos% points to structure
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:127,L:2,L:file%,L:file_pos%)
+ENDFUNC
+> FUNCTION unzgotofilepos64(file%,file_pos%)                ! NOTE: file_pos% points to structure
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:128,L:2,L:file%,L:file_pos%)
+ENDFUNC
+'
+> FUNCTION zipopen64(pathname$,append&)
+  $F%
+  LOCAL exec%
+  pathname$=pathname$+CHR$(0)
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:130,L:2,L:V:pathname$,L:append&)
+ENDFUNC
+> FUNCTION zipopen2_64(pathname$,append&,pzlib_filefunc_def%,VAR globalcomment$)                     ! not supported
+  $F%
+  LOCAL exec%
+  pathname$=pathname$+CHR$(0)
+  globalcomment$=globalcomment$+CHR$(0)
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:131,L:4,L:V:pathname$,L:append&,L:V:globalcomment$,L:pzlib_filefunc_def%)
+ENDFUNC
+> FUNCTION zipopennewfileinzip64
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:132,L:11)
+ENDFUNC
+> FUNCTION zipopennewfileinzip2_64
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:133,L:12)
+ENDFUNC
+> FUNCTION zipopennewfileinzip3_64(file%,filename$,zipfi%,extra_local%,size_local%,extra_global%,size_global%,comment$,method&,level&,raw!,windowbits&,memlevel&,strategy&,password$,crcforcrypting%,zip64!)
+  $F%
+  LOCAL exec%
+  LOCAL comment%
+  LOCAL password%
+  IF comment$=""
+    comment%=0
+  ELSE
+    comment$=comment$+CHR$(0)
+    comment%=V:comment$
+  ENDIF
+  IF password$=""
+    password%=0
+  ELSE
+    password$=password$+CHR$(0)
+    password%=V:password$
+  ENDIF
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:134,L:17,L:file%,L:V:filename$,L:zipfi%,L:extra_local%,L:size_local%,L:extra_global%,L:size_global%,L:comment%,L:method&,L:level&,L:raw!,L:windowbits&,L:memlevel&,L:strategy&,L:password%,L:crcforcrypting%,L:zip64!)
+ENDFUNC
+> FUNCTION zipopennewfileinzip4_64(file%,filename$,zipfi%,extra_local%,size_local%,extra_global%,size_global%,comment$,method&,level&,raw!,windowbits&,memlevel&,strategy&,password$,crc%,madeby%,flagbase%,zip64!)
+  $F%
+  LOCAL exec%
+  LOCAL cm%
+  LOCAL pw%
+  IF comment$=""
+    cm%=0
+  ELSE
+    comment$=comment$+CHR$(0)
+    cm%=V:comment$
+  ENDIF
+  IF password$=""
+    pw%=0
+  ELSE
+    password$=password$+CHR$(0)
+    pw%=V:password$
+  ENDIF
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:135,L:19,L:file%,L:V:filename$,L:zipfi%,L:extra_local%,L:size_local%,L:extra_global%,L:size_global%,L:cm%,L:method&,L:level&,L:raw!,L:windowbits&,L:memlevel&,L:strategy&,L:pw%,L:crc%,L:madeby%,L:flagbase%,L:zip64!)
+ENDFUNC
+> FUNCTION zipclosefileinzipraw64(file%,uncompressed_size_hi%,uncompressed_size_lo%,crc32%)
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:136,L:4,L:file%,L:uncompressed_size_hi%,L:uncompressed_size_lo%,L:crc32%)
+ENDFUNC
+'
+> FUNCTION adler32_combine(adler1%,adler2%,len2%)
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:140,L:3,L:adler1%,L:adler2%,L:len2%)
+ENDFUNC
+> FUNCTION adler32_combine64(adler1%,adler2%,len2%)                ! unsupported; needs 64bit argument
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:141,L:4,L:adler1%,L:adler2%,L:0,L:len2%)
+ENDFUNC
+> FUNCTION crc32_combine(crc1%,crc2%,len2%)
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:142,L:3,L:crc1%,L:crc2%,L:len2%)
+ENDFUNC
+> FUNCTION crc32_combine64(crc1%,crc2%,len2%)                      ! unsupported; needs 64bit argument
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:143,L:4,L:crc1%,L:crc2%,L:0,L:len2%)
+ENDFUNC
+> FUNCTION deflatesetheader(strm%,head%)
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:144,L:2,L:strm%,L:head%)
+ENDFUNC
+> FUNCTION deflatetune(strm%,good_length%,max_lazy%,nice_length%,max_chain%)
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:145,L:5,L:strm%,L:good_length%,L:max_lazy%,L:nice_length%,L:max_chain%)
+ENDFUNC
+> FUNCTION gzbuffer(file%,size%)
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:146,L:2,L:file%,L:size%)
+ENDFUNC
+> FUNCTION gzclose_r(file%)
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:147,L:1,L:file%)
+ENDFUNC
+> FUNCTION gzclose_w(file%)
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:148,L:1,L:file%)
+ENDFUNC
+> FUNCTION gzdirect(file%)
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:149,L:1,L:file%)
+ENDFUNC
+> FUNCTION gzoffset(file%)
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:150,L:1,L:file%)
+ENDFUNC
+> FUNCTION gzoffset64(file%)                                    ! unsupported; returns 64bit value
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:151,L:1,L:file%)
+ENDFUNC
+> FUNCTION gzopen64(path$,mode$)
+  $F%
+  LOCAL exec%
+  path$=path$+CHR$(0)
+  mode$=mode$+CHR$(0)
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:152,L:2,L:V:path$,L:V:mode$)
+ENDFUNC
+> FUNCTION gzseek64(file%,offset%,whence&)                      ! unsupported; returns 64bit value
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:153,L:4,L:file%,L:0,L:offset%,L:whence&)
+ENDFUNC
+> FUNCTION gztell64(file%)                                      ! unsupported; returns 64bit value
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:154,L:1,L:file%)
+ENDFUNC
+'
+> FUNCTION inflategetheader(strm%,head%)
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:156,L:2,L:strm%,L:head%)
+ENDFUNC
+> FUNCTION inflatemark(strm%)
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:157,L:1,L:strm%)
+ENDFUNC
+> FUNCTION inflateprime(strm%,bits&,value&)
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:158,L:3,L:strm%,L:bits&,L:value&)
+ENDFUNC
+> FUNCTION inflatereset2(strm%,windowbits&)
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:159,L:2,L:strm%,L:windowbits&)
+ENDFUNC
+> FUNCTION inflateundermine(strm%,subvert%)
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:160,L:2,L:strm%,L:subvert%)
+ENDFUNC
+> FUNCTION inflateresetkeep(strm%)
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:163,L:1,L:strm%)
+ENDFUNC
+> FUNCTION deflateresetkeep(strm%)
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:164,L:1,L:strm%)
+ENDFUNC
+> FUNCTION inflategetdictionary(strm%,dictionary%,VAR dictlength%)
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:166,L:3,L:strm%,L:dictionary%,L:V:dictlength%)
+ENDFUNC
+> FUNCTION gzvprintf(file%,format$,va%)        ! not supported; needs variable arguments
+  $F%
+  LOCAL exec%
+  format$=format$+CHR$(0)
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:167,L:3,L:file%,L:V:format$,L:va%)
+ENDFUNC
+'
+> FUNCTION inflatecodesused(strm%)
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:168,L:1,L:strm%)
+ENDFUNC
+> FUNCTION inflatevalidate(strm%,check%)
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:169,L:2,L:strm%,L:check%)
+ENDFUNC
+> FUNCTION uncompress2(dest%,source%,VAR destlen%,sourcelen%)
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:170,L:4,L:dest%,L:V:destlen%,L:source%,L:V:sourcelen%)
+ENDFUNC
+> FUNCTION gzfread(buf%,size%,nitems%,file%)
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:171,L:4,L:buf%,L:size%,L:nitems%,L:file%)
+ENDFUNC
+> FUNCTION gzfwrite(buf%,size%,nitems%,file%)
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:172,L:4,L:buf%,L:size%,L:nitems%,L:file%)
+ENDFUNC
+> FUNCTION deflategetdictionary(strm%,dictionary%,VAR dictlength%)
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:173,L:3,L:strm%,L:dictionary%,L:V:dictlength%)
+ENDFUNC
+> FUNCTION adler32_z(adler%,buf%,len%)
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:174,L:3,L:adler%,L:buf%,L:len%)
+ENDFUNC
+> FUNCTION crc32_z(adler%,buf%,len%)
+  $F%
+  LOCAL exec%
+  exec%=LONG{ADD(zlib_slb%,4)}
+  RETURN C:exec%(L:LONG{zlib_slb%},L:175,L:3,L:adler%,L:buf%,L:len%)
+ENDFUNC

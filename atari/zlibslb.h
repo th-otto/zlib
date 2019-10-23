@@ -67,6 +67,7 @@ struct _zlibslb_funcs *zlib_get_slb_funcs(void);
 #define malloc zlib_get_slb_funcs()->p_malloc
 #define free zlib_get_slb_funcs()->p_free
 
+#undef errno
 #define errno (zlib_get_slb_funcs()->p_get_errno())
 #define strerror zlib_get_slb_funcs()->p_strerror
 
@@ -76,18 +77,33 @@ struct _zlibslb_funcs *zlib_get_slb_funcs(void);
 #define write zlib_get_slb_funcs()->p_write
 #define lseek zlib_get_slb_funcs()->p_lseek
 
+/*
+ * only referenced by ioapi.c
+ */
 #define fopen zlib_get_slb_funcs()->p_fopen
 #define fclose zlib_get_slb_funcs()->p_fclose
 #define fseek zlib_get_slb_funcs()->p_fseek
 #define fseeko zlib_get_slb_funcs()->p_fseeko
 #define ftell zlib_get_slb_funcs()->p_ftell
 #define ftello zlib_get_slb_funcs()->p_ftello
-#define sprintf zlib_get_slb_funcs()->p_sprintf
-#define vsnprintf zlib_get_slb_funcs()->p_vsnprintf
 #define fread zlib_get_slb_funcs()->p_fread
 #define fwrite zlib_get_slb_funcs()->p_fwrite
 #define ferror zlib_get_slb_funcs()->p_ferror
 
+#define sprintf zlib_get_slb_funcs()->p_sprintf
+#define vsnprintf zlib_get_slb_funcs()->p_vsnprintf
+
+#define DEBUG 0
+#if DEBUG
+#undef vsnprintf
+#define vsnprintf my_vsnprintf
+int vsnprintf(char *str, size_t size, const char *fmt, va_list va);
+void nf_debugprintf(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
+#endif
+
 #define rand zlib_get_slb_funcs()->p_rand
+#define srand zlib_get_slb_funcs()->p_srand
+
+void init_minilib(struct _zlibslb_funcs *funcs);
 
 #endif /* __ZLIBSLB_H__ */

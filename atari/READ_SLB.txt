@@ -36,6 +36,11 @@ Same as for GCC, except:
 - the static library is named zlib.lib, the import library for the
   shared library is zlibslb.lib.
 
+For GFA:
+Have a look at the examples in the gfa directory. You will need zlib.lst and
+slbload.lst from that directory in your application, and minilib.inl.
+
+
 That's all!
 
 Note that slb_zlib_open() contains fallback code for systems lacking Slbopen(),
@@ -107,12 +112,14 @@ Known bugs:
 
 - Although the handle of the shared library and its corresponding exec
   function are available to the application, the exec function
-  cannot be directly called. Always use the import functions
+  should not be directly called. Always use the import functions
   (they cover all available functions, anyway).
 
 - The library exports all the 64-bit file functions, but, due to lack
   of support of the OS, they are actually identical to their normal
   version. It's not possible to handle files > 2GB.
+  Also, functions that return a 64-bit cannot be called, since the
+  exec function only returns a 32-bit value.
 
 - When using the library with Pure-C, you may have to change some variables
   from plain "int" to "z_int_t". This is because the library was

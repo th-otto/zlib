@@ -43,7 +43,7 @@ int ZEXPORT compress2 (Bytef *dest, uLongf *destLen, const Bytef *source, uLong 
 
     stream.next_out = dest;
     stream.avail_out = 0;
-    stream.next_in = (z_const Bytef *)source;
+    stream.next_in = source;
     stream.avail_in = 0;
 
     do {

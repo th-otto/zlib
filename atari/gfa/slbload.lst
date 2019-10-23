@@ -1,0 +1,269 @@
+'
+' General functions dealing with SLBs
+' global variables:
+' - slb_userpath$ to override getenv("SLBPATH")
+'   can be a semicolon-separated list of paths
+'
+> FUNCTION slb_load(sharedlib$,path$,ver%,extramem%)   ! return <= 0 on error
+  $F%
+  LOCAL slb%
+  LOCAL bp%
+  LOCAL path%
+  LOCAL slb_path$
+  LOCAL semi&
+  LOCAL file$
+  LOCAL er2%
+  LOCAL i&
+  LOCAL test&
+  '
+  sharedlib$=sharedlib$+CHR$(0)
+  ' Malloc a structure for the library handle and exec function
+  slb%=GEMDOS(72,L:ADD(144,extramem%))
+  IF slb%=0
+    RETURN -39 ! ENOMEM
+  ENDIF
+  ' clear our flags
+  LONG{ADD(slb%,8)}=0
+  ' call Slbopen
+  IF path$=""
+    path%=0
+  ELSE
+    path$=path$+CHR$(0)
+    path%=V:path$
+  ENDIF
+  bp%=GEMDOS(22,L:V:sharedlib$,L:path%,L:ver%,L:slb%,L:ADD(slb%,4))
+  IF bp%=-32 OR bp%=-66
+    '
+    ' Slbopen not supported, or program format unknown
+    ' (can happen with MagiC/old MiNT kernels that dont understand
+    ' the newer program format)
+    ' Use our emulation instead
+    '
+    bp%=@local_slb_load(sharedlib$,path$,ver%,slb%)
+  ELSE IF bp%<0
+    '
+    ' assume Library not found. Try looking it up in the path
+    '
+    test&=0
+    WHILE test&<2 AND bp%<0
+      IF test&=0
+        slb_path$=slb_userpath$
+      ELSE
+        ' workaround for interpreter
+        ' in compiled version, MiNT will
+        ' already have looked it up on $SLBPATH
+        slb_path$=@shel_envrn$("SLBPATH")
+      ENDIF
+      ' replace / by \
+      FOR i&=0 TO PRED(LEN(slb_path$))
+        IF BYTE{ADD(V:slb_path$,i&)}=47
+          BYTE{ADD(V:slb_path$,i&)}=92
+        ENDIF
+      NEXT i&
+      WHILE slb_path$<>"" AND bp%<0
+        semi&=INSTR(slb_path$,";")
+        IF semi&>0
+          file$=LEFT$(slb_path$,PRED(semi&))
+          slb_path$=MID$(slb_path$,SUCC(semi&))
+        ELSE
+          file$=slb_path$
+          slb_path$=""
+        ENDIF
+        file$=TRIM$(file$)
+        IF RIGHT$(file$)<>"\"
+          file$=file$+"\"
+        ENDIF
+        file$=file$+CHR$(0)
+        er2%=GEMDOS(22,L:V:sharedlib$,L:V:file$,L:ver%,L:slb%,L:ADD(slb%,4))
+        IF er2%>0
+          bp%=er2%
+        ENDIF
+      WEND
+      INC test&
+    WEND
+  ELSE
+    ' success
+  ENDIF
+  IF bp%<=0
+    ~GEMDOS(73,L:slb%)
+    RETURN bp%
+  ENDIF
+  RETURN slb%
+ENDFUNC
+> PROCEDURE slb_unload(slb%)
+  LOCAL flags%
+  IF slb%>0
+    flags%=LONG{ADD(slb%,8)}
+    IF flags%<>0
+      @local_slb_unload(slb%)
+    ELSE
+      ' call Slbclose on the handle
+      ~GEMDOS(23,L:LONG{slb%})
+    ENDIF
+    ' Mfree our structure
+    ~GEMDOS(73,L:slb%)
+  ENDIF
+RETURN
+> PROCEDURE local_slb_unload(slb%)
+  LOCAL handle%
+  LOCAL func%
+  handle%=LONG{slb%}
+  ' call the libraries slb_close function
+  func%=LONG{ADD(handle%,28)}
+  ~C:func%(L:BASEPAGE)
+  ' call the libraries slb_exit function
+  func%=LONG{ADD(handle%,20)}
+  ~C:func%()
+  ' Mfree the library
+  handle%=LONG{ADD(slb%,12)}
+  ~GEMDOS(73,L:handle%)
+RETURN
+> FUNCTION local_slb_load(sharedlib$,path$,ver%,slb%)  ! return <= 0 on error
+  $F%
+  LOCAL bp%
+  LOCAL slbheader%
+  LOCAL file$
+  LOCAL slb_path$
+  LOCAL arg$
+  LOCAL test&
+  LOCAL semi&
+  LOCAL i&
+  LOCAL exec_longs%
+  LOCAL slbheader%
+  LOCAL func%
+  '
+  ' typedef struct
+  ' {
+  '       long magic;
+  '       const char *name;
+  '       long version;
+  '       long flags;
+  '       void cdecl (*slb_init) (void);
+  '       void cdecl (*slb_exit) (void);
+  '       void cdecl (*slb_open) (BASEPAGE *);
+  '       void cdecl (*slb_close) (BASEPAGE *);
+  '       const char *const *procnames;
+  '       long next;
+  '       long reserved[7];
+  '       long num_funcs;
+  '       /* long funcs_table[] */;
+  ' } SLB_HEADER;
+  '
+  slb_path$=path$
+  IF RIGHT$(slb_path$)<>"\"
+    slb_path$=sbl_path$+"\"
+  ENDIF
+  ' replace / by \
+  FOR i&=0 TO PRED(LEN(slb_path$))
+    IF BYTE{ADD(V:slb_path$,i&)}=47
+      BYTE{ADD(V:slb_path$,i&)}=92
+    ENDIF
+  NEXT i&
+  slb_path$=slb_path$+sharedlib$
+  arg$=CHR$(0)+CHR$(0)
+  bp%=GEMDOS(75,W:3,L:V:slbpath$,L:V:arg$,L:0)
+  test&=0
+  WHILE test&<2 AND bp%<0
+    IF i&=0
+      slb_path$=slb_userpath$
+    ELSE
+      slb_path$=@shel_envrn$("SLBPATH")
+      IF slb_path$=""
+        slb_path$="C:\mint\slb"
+      ENDIF
+    ENDIF
+    WHILE slb_path$<>"" AND bp%<=0
+      semi&=INSTR(slb_path$,";")
+      IF semi&>0
+        file$=LEFT$(slb_path$,PRED(semi&))
+        slb_path$=MID$(slb_path$,SUCC(semi&))
+      ELSE
+        file$=slb_path$
+        slb_path$=""
+      ENDIF
+      file$=TRIM$(file$)
+      ' replace / by \
+      FOR i&=0 TO PRED(LEN(file$))
+        IF BYTE{ADD(V:file$,i&)}=47
+          BYTE{ADD(V:file$,i&)}=92
+        ENDIF
+      NEXT i&
+      IF RIGHT$(file$)<>"\"
+        file$=file$+"\"
+      ENDIF
+      file$=file$+sharedlib$
+      bp%=GEMDOS(75,W:3,L:V:file$,L:V:arg$,L:0)
+    WEND
+    INC test&
+  WEND
+  IF bp%<=0
+    RETURN bp%
+  ENDIF
+  ' Mfree the SLBs env, it is not needed
+  IF LONG{ADD(bp%,44)}<>0
+    ~GEMDOS(73,LONG{ADD(bp%,44)})
+    LONG{ADD(bp%,44)}=0
+  ENDIF
+  '
+  ' Mark this this SLB as using the emulation
+  LONG{ADD(slb%,8)}=1
+  LONG{ADD(slb%,12)}=bp%
+  '
+  ' Test for new program format produced by GCC
+  '
+  exec_longs%=LONG{ADD(bp%,8)}  ! bp->p_tbase
+  IF (LONG{exec_longs%}=&H283A001A AND LONG{ADD(exec_longs%,4)}=&H4EFB48FA) OR (LONG{exec_longs%}=&H203A001A AND LONG{ADD(exec_longs%,4)}=&H4EFB08FA)
+    slbheader%=ADD(exec_longs%,228)
+  ELSE
+    slbheader%=exec_longs%
+  ENDIF
+  '
+  ' check for the magic
+  IF LONG{slbheader%}<>&H70004AFC
+    ~GEMDOS(73,L:bp%)
+    RETURN -66 ! EPLFMT
+  ENDIF
+  '
+  ' check for the minimum version
+  IF LONG{ADD(slbheader%,8)}<ver%
+    ~GEMDOS(73,L:bp%)
+    RETURN -64 ! EBADARG
+  ENDIF
+  '
+  ' Mshrink the memory
+  ~GEMDOS(74,W:0,L:bp%,L:ADD(256,ADD(ADD(LONG{ADD(bp%,12)},LONG{ADD(bp%,20)}),LONG{ADD(bp%,28)})))
+  '
+  ' Copy the filename to the commandline
+  file$=LEFT$(file$,127)
+  CHAR{ADD(bp%,128)}=file$
+  '
+  ' call the slb_init function
+  func%=LONG{ADD(slbheader%,16)}
+  ~C:func%()
+  ' call the slb_open function
+  func%=LONG{ADD(slbheader%,24)}
+  ~C:func%(L:BASEPAGE)
+  '
+  ' Now store our exec callback function.
+  func%=ADD(slb%,16)
+  LONG{func%}=&H206F0004         ! move.l 4(a7),a0  ; get header of shared lib
+  LONG{ADD(func%,4)}=&H202F0008  ! move.l 8(a7),d0  ; get function number
+  LONG{ADD(func%,8)}=&HB0A80044  ! cmp.l 68(a0),d0  ; compare with max function number
+  WORD{ADD(func%,12)}=&H6418     ! bcc.s invalidnum
+  WORD{ADD(func%,14)}=&HD080     ! add.l d0,d0      ; *= sizeof(long)
+  WORD{ADD(func%,16)}=&HD080     ! add.l d0,d0
+  LONG{ADD(func%,18)}=&H20300848 ! move.l 72(a0,d0.l),d0 ; get function pointer
+  WORD{ADD(func%,22)}=&H670E     ! beq.s invalidnum
+  WORD{ADD(func%,24)}=&H207C     ! move.l BASEPAGE,a0
+  LONG{ADD(func%,26)}=BASEPAGE
+  LONG{ADD(func%,30)}=&H2F480004 ! move.l a0,4(a7)  ; act_pd on stack, replacing sharedlib pointer
+  WORD{ADD(func%,34)}=&H2040     ! move.l d0,a0
+  WORD{ADD(func%,36)}=&H4ED0     ! jmp (a0)         ; go for it
+  LONG{ADD(func%,38)}=&H70E04E75 ! moveq #-32,d0; rts
+  CPUFLUSH
+  '
+  ' store the handles, and return success
+  LONG{slb%}=slbheader%
+  LONG{ADD(slb%,4)}=func%
+  RETURN bp%
+ENDFUNC

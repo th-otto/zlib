@@ -283,12 +283,12 @@ int ZEXPORT deflateInit2_(
         wrap = 0;
         windowBits = -windowBits;
     }
-#ifdef GZIP
     else if (windowBits > 15) {
+#ifdef GZIP
         wrap = 2;       /* write gzip wrapper instead */
+#endif
         windowBits -= 16;
     }
-#endif
     if (memLevel < 1 || memLevel > MAX_MEM_LEVEL || method != Z_DEFLATED ||
         windowBits < 8 || windowBits > 15 || level < 0 || level > 9 ||
         strategy < 0 || strategy > Z_FIXED || (windowBits == 8 && wrap != 1)) {
@@ -372,7 +372,7 @@ int ZEXPORT deflateSetDictionary (z_streamp strm, const Bytef *dictionary, uInt 
     uInt str, n;
     int wrap;
     unsigned avail;
-    z_const unsigned char *next;
+    const unsigned char *next;
 
     if (deflateStateCheck(strm) || dictionary == Z_NULL)
         return Z_STREAM_ERROR;
@@ -402,7 +402,7 @@ int ZEXPORT deflateSetDictionary (z_streamp strm, const Bytef *dictionary, uInt 
     avail = strm->avail_in;
     next = strm->next_in;
     strm->avail_in = dictLength;
-    strm->next_in = (z_const Bytef *)dictionary;
+    strm->next_in = dictionary;
     fill_window(s);
     while (s->lookahead >= MIN_MATCH) {
         str = s->strstart;

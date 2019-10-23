@@ -249,7 +249,7 @@ local void fixedtables(struct inflate_state FAR *state)
 int ZEXPORT inflateBack(z_streamp strm, in_func in, void FAR *in_desc, out_func out, void FAR *out_desc)
 {
     struct inflate_state FAR *state;
-    z_const unsigned char FAR *next;    /* next input */
+    const unsigned char FAR *next;    /* next input */
     unsigned char FAR *put;     /* next output */
     unsigned have, left;        /* available input and output */
     unsigned long hold;         /* bit buffer */
@@ -471,6 +471,7 @@ int ZEXPORT inflateBack(z_streamp strm, in_func in, void FAR *in_desc, out_func 
             }
             Tracev((stderr, "inflate:       codes ok\n"));
             state->mode = LEN;
+			/* fall through */
 
         case LEN:
             /* use inflate_fast() if we have enough input and output */

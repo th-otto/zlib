@@ -229,11 +229,7 @@
 #  endif
 #endif
 
-#if defined(ZLIB_CONST) && !defined(z_const)
-#  define z_const const
-#else
-#  define z_const
-#endif
+#define z_const const
 
 #ifdef Z_SOLO
    typedef unsigned long z_size_t;

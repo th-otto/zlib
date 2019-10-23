@@ -13,7 +13,9 @@
 #include <mint/mintbind.h>
 #include <mint/slb.h>
 #include <errno.h>
+#include <string.h>
 #include "zlibstr.h"
+#include "zlibslb.h"
 
 #if defined(__MSHORT__) || defined(__PUREC__) || defined(__AHCC__)
 # error "the zlib.slb must not be compiled with -mshort"
@@ -22,6 +24,15 @@
 #ifndef NO_DUMMY_DECL
 struct internal_state      {int dummy;}; /* for buggy compilers */
 #endif
+
+
+/*
+ * referenced from header.S
+ */
+long zlib_init(void);
+void zlib_exit(void);
+long zlib_open(BASEPAGE *bp);
+void zlib_close(BASEPAGE *bp);
 
 
 
@@ -144,6 +155,8 @@ static long zlib_set_imports(struct _zlibslb_funcs *funcs)
 	if (funcs->int_size != sizeof(int))
 		return -ERANGE;
 	proc->funcs = funcs;
+	init_minilib(funcs);
+
 	return 0;
 }
 
@@ -162,7 +175,7 @@ static long slb_compile_flags(void)
 }
 
 
-long _CDECL zlib_slb_control(long fn, void *arg)
+long __CDECL zlib_slb_control(long fn, void *arg)
 {
 	switch ((int)fn)
 	{
@@ -181,12 +194,19 @@ long _CDECL zlib_slb_control(long fn, void *arg)
  */
 void *(memcpy)(void *dest, const void *src, size_t len)
 {
-	return memcpy(dest, src, len);
+	return zlib_get_slb_funcs()->p_memcpy(dest, src, len);
 }
 
 
 /* same for strlen */
 size_t (strlen)(const char *str)
 {
-	return strlen(str);
+	return zlib_get_slb_funcs()->p_strlen(str);
+}
+
+
+/* same for memset */
+void *(memset)(void *dest, int c, size_t len)
+{
+	return zlib_get_slb_funcs()->p_memset(dest, c, len);
 }

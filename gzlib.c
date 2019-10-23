@@ -22,7 +22,7 @@ struct internal_state      {int dummy;}; /* for buggy compilers */
 
 /* Local functions */
 local void gz_reset OF((gz_statep));
-local gzFile gz_open OF((const void *, int, const char *));
+local gzFile gz_open OF((const char *, int, const char *));
 
 #if defined UNDER_CE
 
@@ -91,7 +91,7 @@ local void gz_reset(gz_statep state)
 }
 
 /* Open a gzip file either by name or file descriptor. */
-local gzFile gz_open(const void *path, int fd, const char *mode)
+local gzFile gz_open(const char *path, int fd, const char *mode)
 {
     gz_statep state;
     z_size_t len;
@@ -282,7 +282,12 @@ gzFile ZEXPORT gzdopen(int fd, const char *mode)
 
     if (fd == -1 || (path = (char *)z_malloc(7 + 3 * sizeof(int))) == NULL)
         return NULL;
+#ifdef ZLIB_SLB
+	/* avoid reference to sprintf; it is the only one */
+	strcpy(path, "<fd>");
+#else
     sprintf(path, "<fd:%d>", fd);   /* for debugging */
+#endif
     gz = gz_open(path, fd, mode);
     z_free(path);
     return gz;
@@ -292,7 +297,7 @@ gzFile ZEXPORT gzdopen(int fd, const char *mode)
 #ifdef WIDECHAR
 gzFile ZEXPORT gzopen_w(const wchar_t *path, const char *mode)
 {
-    return gz_open(path, -2, mode);
+    return gz_open((const char *)path, -2, mode);
 }
 #endif
 

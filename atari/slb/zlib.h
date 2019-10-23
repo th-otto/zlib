@@ -15,16 +15,17 @@
 #include <zlib.h>
 #include <mint/slb.h>
 
-#if defined(__PUREC__) || defined(__AHCC__)
-#undef _CDECL
+#if defined(__PUREC__) || defined(__TURBOC__) || defined(__AHCC__)
+#undef __CDECL
 /* if you get a compile error here, you must turn off ANSI */
-#define _CDECL cdecl
+#define __CDECL cdecl
 #endif
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+#define ZLIB_SHAREDLIB_NAME "zlib.slb"
 
 long slb_zlib_open(const char *slbpath);
 void slb_zlib_close(void);

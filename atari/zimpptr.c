@@ -11,12 +11,12 @@
 #include "zlibstr.h"
 
 
-static long _CDECL slb_not_loaded(SLB_HANDLE slb, long fn, short nwords, ...)
+static long __CDECL slb_not_loaded(SLB_HANDLE slb, long fn, short nwords, ...)
 {
 	(void)slb;
 	(void)fn;
 	(void)nwords;
-	(void) Cconws(SHAREDLIB " was not loaded\r\n");
+	(void) Cconws(ZLIB_SHAREDLIB_NAME " was not loaded\r\n");
 	Pterm(1);
 	return -32;
 }
