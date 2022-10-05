@@ -1,34 +1,16 @@
-
-
-
-
-
-
  .text
-
-
-
-
-
-
  .dc.l 0x70004afc
  .dc.l _slbname
- .dc.l 0x12b0
+ .dc.l 0x12c0
  .dc.l 0
  .dc.l zlib_init
  .dc.l zlib_exit
  .dc.l zlib_open
  .dc.l zlib_close
-
  .dc.l _slh_names
-
-
-
  .dc.l 0
  .dc.l 0,0,0,0,0,0,0
-
  .dc.l (slh_fend-slh_functions)/4
-
 slh_functions:
            .dc.l _wrap_zlib_slb_control
            .dc.l _wrap_adler32
@@ -120,7 +102,7 @@ slh_functions:
            .dc.l _wrap_zipCloseFileInZipRaw
            .dc.l _wrap_zipOpen2
            .dc.l _wrap_zipOpenNewFileInZip3
-           .dc.l 0
+           .dc.l _wrap_zipOpen3
            .dc.l 0
            .dc.l 0
            .dc.l 0
@@ -196,11 +178,8 @@ slh_functions:
            .dc.l _wrap_inflateResetKeep
            .dc.l _wrap_deflateResetKeep
            .dc.l 0
-
            .dc.l _wrap_inflateGetDictionary
            .dc.l _wrap_gzvprintf
-
-
            .dc.l _wrap_inflateCodesUsed
            .dc.l _wrap_inflateValidate
            .dc.l _wrap_uncompress2
@@ -209,10 +188,9 @@ slh_functions:
            .dc.l _wrap_deflateGetDictionary
            .dc.l _wrap_adler32_z
            .dc.l _wrap_crc32_z
-
-           .dc.l 0
-           .dc.l 0
-           .dc.l 0
+           .dc.l _wrap_crc32_combine_gen
+           .dc.l _wrap_crc32_combine_gen64
+           .dc.l _wrap_crc32_combine_op
            .dc.l 0
            .dc.l 0
            .dc.l 0
@@ -406,7 +384,8 @@ slh_fend:
   .dc.b 0
            name_zipOpenNewFileInZip3_str: .ascii "zipOpenNewFileInZip3"
   .dc.b 0
-          
+           name_zipOpen3_str: .ascii "zipOpen3"
+  .dc.b 0
           
           
           
@@ -542,9 +521,12 @@ slh_fend:
   .dc.b 0
            name_crc32_z_str: .ascii "crc32_z"
   .dc.b 0
-          
-          
-          
+           name_crc32_combine_gen_str: .ascii "crc32_combine_gen"
+  .dc.b 0
+           name_crc32_combine_gen64_str: .ascii "crc32_combine_gen64"
+  .dc.b 0
+           name_crc32_combine_op_str: .ascii "crc32_combine_op"
+  .dc.b 0
           
           
           
@@ -658,7 +640,7 @@ _slh_names:
            .dc.l name_zipCloseFileInZipRaw_str
            .dc.l name_zipOpen2_str
            .dc.l name_zipOpenNewFileInZip3_str
-           .dc.l 0
+           .dc.l name_zipOpen3_str
            .dc.l 0
            .dc.l 0
            .dc.l 0
@@ -744,9 +726,9 @@ _slh_names:
            .dc.l name_deflateGetDictionary_str
            .dc.l name_adler32_z_str
            .dc.l name_crc32_z_str
-           .dc.l 0
-           .dc.l 0
-           .dc.l 0
+           .dc.l name_crc32_combine_gen_str
+           .dc.l name_crc32_combine_gen64_str
+           .dc.l name_crc32_combine_op_str
            .dc.l 0
            .dc.l 0
            .dc.l 0
@@ -1182,7 +1164,11 @@ _slh_names:
   addq.l #4,a7
   move.l d0,(a7)
   jmp zipOpenNewFileInZip3
-          
+           _wrap_zipOpen3 : move.l (a7)+,d0
+  move.l (a7)+,a0
+  addq.l #4,a7
+  move.l d0,(a7)
+  jmp zipOpen3
           
           
           
@@ -1468,9 +1454,21 @@ _slh_names:
   addq.l #4,a7
   move.l d0,(a7)
   jmp crc32_z
-          
-          
-          
+           _wrap_crc32_combine_gen : move.l (a7)+,d0
+  move.l (a7)+,a0
+  addq.l #4,a7
+  move.l d0,(a7)
+  jmp crc32_combine_gen
+           _wrap_crc32_combine_gen64 : move.l (a7)+,d0
+  move.l (a7)+,a0
+  addq.l #4,a7
+  move.l d0,(a7)
+  jmp crc32_combine_gen64
+           _wrap_crc32_combine_op : move.l (a7)+,d0
+  move.l (a7)+,a0
+  addq.l #4,a7
+  move.l d0,(a7)
+  jmp crc32_combine_op
           
           
           

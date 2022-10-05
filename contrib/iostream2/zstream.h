@@ -46,7 +46,7 @@ private:
     struct Val { unsigned char byte; size_t word; } val;
 };
 
-//  ----------------------------- izstream -----------------------------
+/*  ----------------------------- izstream ----------------------------- */
 
 class izstream
 {
@@ -150,7 +150,7 @@ inline char* read_string(izstream& zs) {
     return x;
 }
 
-// ----------------------------- ozstream -----------------------------
+/* ----------------------------- ozstream ----------------------------- */
 
 class ozstream
 {

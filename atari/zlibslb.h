@@ -18,6 +18,7 @@
 
 #undef memset
 #undef memcpy
+#undef memmove
 #undef memchr
 
 #undef strlen
@@ -58,6 +59,9 @@ struct _zlibslb_funcs *zlib_get_slb_funcs(void);
 #define memset(d, c, l) zlib_get_slb_funcs()->p_memset(d, c, l)
 #define memcpy(d, s, l) zlib_get_slb_funcs()->p_memcpy(d, s, l)
 #define memchr(d, c, l) zlib_get_slb_funcs()->p_memchr(d, c, l)
+/* we know that it is safe to use memcpy instead of memmove,
+   both for mintlib and pure-c */
+#define memmove(d, s, l) zlib_get_slb_funcs()->p_memcpy(d, s, l)
 
 #define strlen(s) zlib_get_slb_funcs()->p_strlen(s)
 #define strcpy zlib_get_slb_funcs()->p_strcpy

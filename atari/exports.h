@@ -106,8 +106,8 @@
 	/*  87 */ LIBFUNC(87, zipCloseFileInZipRaw, 3)
 	/*  88 */ LIBFUNC(88, zipOpen2, 4)
 	/*  89 */ LIBFUNC(89, zipOpenNewFileInZip3, 16)
+	/*  90 */ LIBFUNC(90, zipOpen3, 4)
 
-	/*  90 */ NOFUNC
 	/*  91 */ NOFUNC
 	/*  92 */ NOFUNC
 	/*  93 */ NOFUNC
@@ -210,9 +210,11 @@
 	/* 174 */ LIBFUNC2(174, adler32_z, 3)
 	/* 175 */ LIBFUNC2(175, crc32_z, 3)
 
-	/* 176 */ NOFUNC
-	/* 177 */ NOFUNC
-	/* 178 */ NOFUNC
+/* zlib1 v1.2.12 added: */
+	/* 176 */ LIBFUNC2(176, crc32_combine_gen, 1)
+	/* 177 */ LIBFUNC2(177, crc32_combine_gen64, 2)
+	/* 178 */ LIBFUNC2(178, crc32_combine_op, 3)
+
 	/* 179 */ NOFUNC
 	/* 180 */ NOFUNC
 	/* 181 */ NOFUNC

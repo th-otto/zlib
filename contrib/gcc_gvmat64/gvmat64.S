@@ -1,7 +1,7 @@
 /*
 ;uInt longest_match_x64(
 ;    deflate_state *s,
-;    IPos cur_match);                             // current match 
+;    IPos cur_match);                             /* current match  */
 
 ; gvmat64.S -- Asm portion of the optimized longest_match for 32 bits x86_64
 ;  (AMD64 on Athlon 64, Opteron, Phenom
@@ -40,7 +40,7 @@
 
 ;uInt longest_match(s, cur_match)
 ;    deflate_state *s;
-;    IPos cur_match;                             // current match /
+;    IPos cur_match;                             /* current match / */
 ;
 ; with XCode for Mac, I had strange error with some jump on intel syntax
 ; this is why BEFORE_JMP and AFTER_JMP are used
@@ -159,7 +159,7 @@ printf("#define dsNiceMatch     %u\n",(int)(((char*)&(s->nice_match))-((char*)s)
 #define prev_ad          [ rcx + dsPrev]
 #define strstart         [ rcx + dsStrStart]
 #define match_start      [ rcx + dsMatchStart]
-#define Lookahead        [ rcx + dsLookahead] //; 0ffffffffh on infozip
+#define Lookahead        [ rcx + dsLookahead] /*; 0ffffffffh on infozip */
 #define prev_length      [ rcx + dsPrevLen]
 #define max_chain_length [ rcx + dsMaxChainLen]
 #define good_match       [ rcx + dsGoodMatch]
@@ -209,11 +209,11 @@ printf("#define dsNiceMatch     %u\n",(int)(((char*)&(s->nice_match))-((char*)s)
         mov [save_r15],r15
 
 
-//;;; uInt wmask = s->w_mask;
-//;;; unsigned chain_length = s->max_chain_length;
-//;;; if (s->prev_length >= s->good_match) {
-//;;;     chain_length >>= 2;
-//;;; }
+/*;;; uInt wmask = s->w_mask; */
+/*;;; unsigned chain_length = s->max_chain_length; */
+/*;;; if (s->prev_length >= s->good_match) { */
+/*;;;     chain_length >>= 2; */
+/*;;; } */
 
 
         mov edi, prev_length
@@ -225,17 +225,18 @@ printf("#define dsNiceMatch     %u\n",(int)(((char*)&(s->nice_match))-((char*)s)
         shr ebx, 2
 LastMatchGood:
 
-//;;; chainlen is decremented once beforehand so that the function can
-//;;; use the sign flag instead of the zero flag for the exit test.
-//;;; It is then shifted into the high word, to make room for the wmask
-//;;; value, which it will always accompany.
-
+/*
+;;; chainlen is decremented once beforehand so that the function can
+;;; use the sign flag instead of the zero flag for the exit test.
+;;; It is then shifted into the high word, to make room for the wmask
+;;; value, which it will always accompany.
+*/
         dec ebx
         shl ebx, 16
         or  ebx, eax
 
-//;;; on zlib only
-//;;; if ((uInt)nice_match > s->lookahead) nice_match = s->lookahead;
+/*;;; on zlib only */
+/*;;; if ((uInt)nice_match > s->lookahead) nice_match = s->lookahead; */
 
 
 
@@ -248,20 +249,20 @@ LastMatchGood:
 
 
 
-//;;; register Bytef *scan = s->window + s->strstart;
+/*;;; register Bytef *scan = s->window + s->strstart; */
         mov r10, window_ad
         mov ebp, strstart
         lea r13, [r10 + rbp]
 
-//;;; Determine how many bytes the scan ptr is off from being
-//;;; dword-aligned.
+/*;;; Determine how many bytes the scan ptr is off from being */
+/*;;; dword-aligned. */
 
          mov r9,r13
          neg r13
          and r13,3
 
-//;;; IPos limit = s->strstart > (IPos)MAX_DIST(s) ?
-//;;;     s->strstart - (IPos)MAX_DIST(s) : NIL;
+/*;;; IPos limit = s->strstart > (IPos)MAX_DIST(s) ? */
+/*;;;     s->strstart - (IPos)MAX_DIST(s) : NIL; */
 
 
         mov eax, window_size
@@ -275,23 +276,23 @@ LastMatchGood:
 
         cmovng ebp,edi
 
-//;;; int best_len = s->prev_length;
+/*;;; int best_len = s->prev_length; */
 
 
-//;;; Store the sum of s->window + best_len in esi locally, and in esi.
+/*;;; Store the sum of s->window + best_len in esi locally, and in esi. */
 
        lea  rsi,[r10+r11]
 
-//;;; register ush scan_start = *(ushf*)scan;
-//;;; register ush scan_end   = *(ushf*)(scan+best_len-1);
-//;;; Posf *prev = s->prev;
+/*;;; register ush scan_start = *(ushf*)scan; */
+/*;;; register ush scan_end   = *(ushf*)(scan+best_len-1); */
+/*;;; Posf *prev = s->prev; */
 
         movzx r12d,word ptr [r9]
         movzx ebx, word ptr [r9 + r11 - 1]
 
         mov rdi, prev_ad
 
-//;;; Jump into the main loop.
+/*;;; Jump into the main loop. */
 
         mov edx, [chainlenwmask]
 
@@ -407,7 +408,7 @@ LookupLoopIsZero:
 		AFTER_JMP
 
 
-//;;; Store the current value of chainlen.
+/*;;; Store the current value of chainlen. */
         mov [chainlenwmask], edx
 /*
 ;;; Point edi to the string under scrutiny, and esi to the string we
@@ -416,9 +417,9 @@ LookupLoopIsZero:
 ;;; initialized to -(MAX_MATCH_8 - scanalign).
 */
         lea rsi,[r8+r10]
-        mov rdx, 0xfffffffffffffef8 //; -(MAX_MATCH_8)
-        lea rsi, [rsi + r13 + 0x0108] //;MAX_MATCH_8]
-        lea rdi, [r9 + r13 + 0x0108] //;MAX_MATCH_8]
+        mov rdx, 0xfffffffffffffef8 /*; -(MAX_MATCH_8) */
+        lea rsi, [rsi + r13 + 0x0108] /*;MAX_MATCH_8] */
+        lea rdi, [r9 + r13 + 0x0108] /*;MAX_MATCH_8] */
 
         prefetcht1 [rsi+rdx]
         prefetcht1 [rdi+rdx]
@@ -485,8 +486,8 @@ LenLower32:
 LenLower:		
         sub al, 1
         adc rdx, 0
-//;;; Calculate the length of the match. If it is longer than MAX_MATCH,
-//;;; then automatically accept it as the best possible match and leave.
+/*;;; Calculate the length of the match. If it is longer than MAX_MATCH, */
+/*;;; then automatically accept it as the best possible match and leave. */
 
         lea rax, [rdi + rdx]
         sub rax, r9
@@ -497,7 +498,6 @@ LenLower:
 /*
 ;;; If the length of the match is not longer than the best match we
 ;;; have so far, then forget it and return to the lookup loop.
-;///////////////////////////////////
 */
         cmp eax, r11d
         jg  LongerMatch
@@ -532,14 +532,14 @@ LongerMatch:
         jmp LookupLoop
 		AFTER_JMP
 
-//;;; Accept the current string, with the maximum possible length.
+/*;;; Accept the current string, with the maximum possible length. */
 
 LenMaximum:
         mov r11d,MAX_MATCH
         mov match_start, r8d
 
-//;;; if ((uInt)best_len <= s->lookahead) return (uInt)best_len;
-//;;; return s->lookahead;
+/*;;; if ((uInt)best_len <= s->lookahead) return (uInt)best_len; */
+/*;;; return s->lookahead; */
 
 LeaveNow:
         mov eax, Lookahead
@@ -548,11 +548,11 @@ LeaveNow:
 
 
 
-//;;; Restore the stack and return from whence we came.
+/*;;; Restore the stack and return from whence we came. */
 
 
-//        mov rsi,[save_rsi]
-//        mov rdi,[save_rdi]
+/*        mov rsi,[save_rsi] */
+/*        mov rdi,[save_rdi] */
         mov rbx,[save_rbx]
         mov rbp,[save_rbp]
         mov r12,[save_r12]
@@ -562,10 +562,10 @@ LeaveNow:
 
 
         ret 0
-//; please don't remove this string !
-//; Your can freely use gvmat64 in any free or commercial app
-//; but it is far better don't remove the string in the binary!
- //   db     0dh,0ah,"asm686 with masm, optimised assembly code from Brian Raiter, written 1998, converted to amd 64 by Gilles Vollant 2005",0dh,0ah,0
+/*; please don't remove this string ! */
+/*; Your can freely use gvmat64 in any free or commercial app */
+/*; but it is far better don't remove the string in the binary! */
+ /*   db     0dh,0ah,"asm686 with masm, optimised assembly code from Brian Raiter, written 1998, converted to amd 64 by Gilles Vollant 2005",0dh,0ah,0 */
 
 
 match_init:

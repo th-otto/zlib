@@ -214,6 +214,9 @@ GEN_IMP_OBJS = \
 	zimp_173.o \
 	zimp_174.o \
 	zimp_175.o \
+	zimp_176.o \
+	zimp_177.o \
+	zimp_178.o \
 	$(empty)
 IMP_OBJS = zimpptr.o zimpopen.o libclose.o slbload.o slbexec.o \
 	$(GEN_IMP_OBJS)
@@ -593,8 +596,8 @@ allbindist:
 	install -m 644 gfa/minilib.inl $(GFA_INL) $(GFA_OTHER) $(DESTDIR)/gfa
 	$(MAKE) clean
 	install -m 644 READ_SLB.txt $(DESTDIR)
-	cd $(DESTDIR)/..; rm -f zlib1211.zip; zip -r zlib1211.zip `basename $(DESTDIR)`
-	cd $(SRCDIR); git archive --prefix=zlib-1.2.11-slb/ HEAD | bzip2 > $(DESTDIR)/../zlib-1.2.11-slb.tar.bz2
+	VERSION=`sed -n -e '/VERSION "/s/.*"\(.*\)".*/\1/p' $(SRCDIR)zlib.h | tr -d .`; cd $(DESTDIR)/..; rm -f zlib$${VERSION}.zip; zip -r zlib$${VERSION}.zip `basename $(DESTDIR)`
+	cd $(SRCDIR); VERSION=`sed -n -e '/VERSION "/s/.*"\(.*\)".*/\1/p' zlib.h`; git archive --prefix=zlib-$${VERSION}-slb/ HEAD | bzip2 > $(DESTDIR)/../zlib-$${VERSION}-slb.tar.bz2
 
 mostlyclean: clean
 clean:
@@ -623,7 +626,7 @@ tags:
 	etags $(SRCDIR)*.[ch]
 
 headerpc.s: header.S exports.h symbols.h zlibver.h Makefile
-	$(CPP) $(CPPFLAGS) -U__USER_LABEL_PREFIX__ -D__USER_LABEL_PREFIX__= $< | sed -e 's/;/\n /g' -e 's/%//g' -e 's/jbra/jmp/' > $@
+	$(CPP) $(CPPFLAGS) -U__USER_LABEL_PREFIX__ -D__USER_LABEL_PREFIX__= $< | sed -e 's/;/\n /g' -e 's/%//g' -e 's/jbra/jmp/' -e 's/SHAREDLIB/"$(SHAREDLIB)"/' > $@
 
 adler32.o zutil.o: $(SRCDIR)zutil.h $(SRCDIR)zlib.h $(SRCDIR)zconf.h
 gzclose.o gzlib.o gzread.o gzwrite.o: $(SRCDIR)zlib.h $(SRCDIR)zconf.h $(SRCDIR)gzguts.h

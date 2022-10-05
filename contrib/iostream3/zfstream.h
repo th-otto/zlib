@@ -10,7 +10,7 @@
 #ifndef ZFSTREAM_H
 #define ZFSTREAM_H
 
-#include <istream>  // not iostream, since we don't need cin/cout
+#include <istream>  /* not iostream, since we don't need cin/cout */
 #include <ostream>
 #include "zlib.h"
 
@@ -27,10 +27,10 @@
 class gzfilebuf : public std::streambuf
 {
 public:
-  //  Default constructor.
+  /*  Default constructor. */
   gzfilebuf();
 
-  //  Destructor.
+  /*  Destructor. */
   virtual
   ~gzfilebuf();
 
@@ -145,18 +145,19 @@ protected:
   virtual int
   sync();
 
-//
-// Some future enhancements
-//
-//  virtual int_type uflow();
-//  virtual int_type pbackfail(int_type c = traits_type::eof());
-//  virtual pos_type
-//  seekoff(off_type off,
-//          std::ios_base::seekdir way,
-//          std::ios_base::openmode mode = std::ios_base::in|std::ios_base::out);
-//  virtual pos_type
-//  seekpos(pos_type sp,
-//          std::ios_base::openmode mode = std::ios_base::in|std::ios_base::out);
+/*
+ * Some future enhancements
+ *
+ *  virtual int_type uflow();
+ *  virtual int_type pbackfail(int_type c = traits_type::eof());
+ *  virtual pos_type
+ *  seekoff(off_type off,
+ *          std::ios_base::seekdir way,
+ *          std::ios_base::openmode mode = std::ios_base::in|std::ios_base::out);
+ *  virtual pos_type
+ *  seekpos(pos_type sp,
+ *          std::ios_base::openmode mode = std::ios_base::in|std::ios_base::out);
+ */
 
 private:
   /**
@@ -234,7 +235,7 @@ private:
 class gzifstream : public std::istream
 {
 public:
-  //  Default constructor
+  /*  Default constructor */
   gzifstream();
 
   /**
@@ -323,7 +324,7 @@ private:
 class gzofstream : public std::ostream
 {
 public:
-  //  Default constructor
+  /*  Default constructor */
   gzofstream();
 
   /**
@@ -413,29 +414,29 @@ template<typename T1, typename T2>
   class gzomanip2
   {
   public:
-    // Allows insertor to peek at internals
+    /* Allows insertor to peek at internals */
     template <typename Ta, typename Tb>
       friend gzofstream&
       operator<<(gzofstream&,
                  const gzomanip2<Ta,Tb>&);
 
-    // Constructor
+    /* Constructor */
     gzomanip2(gzofstream& (*f)(gzofstream&, T1, T2),
               T1 v1,
               T2 v2);
   private:
-    // Underlying manipulator function
+    /* Underlying manipulator function */
     gzofstream&
     (*func)(gzofstream&, T1, T2);
 
-    // Arguments for manipulator function
+    /* Arguments for manipulator function */
     T1 val1;
     T2 val2;
   };
 
 /*****************************************************************************/
 
-// Manipulator function thunks through to stream buffer
+/* Manipulator function thunks through to stream buffer */
 inline gzofstream&
 setcompression(gzofstream &gzs, int l, int s = Z_DEFAULT_STRATEGY)
 {
@@ -443,7 +444,7 @@ setcompression(gzofstream &gzs, int l, int s = Z_DEFAULT_STRATEGY)
   return gzs;
 }
 
-// Manipulator constructor stores arguments
+/* Manipulator constructor stores arguments */
 template<typename T1, typename T2>
   inline
   gzomanip2<T1,T2>::gzomanip2(gzofstream &(*f)(gzofstream &, T1, T2),
@@ -452,15 +453,15 @@ template<typename T1, typename T2>
   : func(f), val1(v1), val2(v2)
   { }
 
-// Insertor applies underlying manipulator function to stream
+/* Insertor applies underlying manipulator function to stream */
 template<typename T1, typename T2>
   inline gzofstream&
   operator<<(gzofstream& s, const gzomanip2<T1,T2>& m)
   { return (*m.func)(s, m.val1, m.val2); }
 
-// Insert this onto stream to simplify setting of compression level
+/* Insert this onto stream to simplify setting of compression level */
 inline gzomanip2<int,int>
 setcompression(int l, int s = Z_DEFAULT_STRATEGY)
 { return gzomanip2<int,int>(&setcompression, l, s); }
 
-#endif // ZFSTREAM_H
+#endif /* ZFSTREAM_H */

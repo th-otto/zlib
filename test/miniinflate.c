@@ -13,7 +13,7 @@
  * or in pipe mode.
  */
 
-#include "zlib.h"
+#include "../zlib.h"
 #include "zutil.h"
 #include <stdio.h>
 #include <string.h>

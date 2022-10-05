@@ -6,7 +6,7 @@
  */
 
 #include "zfstream.h"
-#include <iostream>      // for cout
+#include <iostream>      /* for cout */
 
 int main() {
 
