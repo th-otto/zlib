@@ -19,6 +19,10 @@
 #  define ZLIB_INTERNAL
 #endif
 
+#ifdef __GNUC__
+#define NO_DUMMY_DECL
+#endif
+
 #include "zlib.h"
 
 #if defined(STDC) && !defined(Z_SOLO)

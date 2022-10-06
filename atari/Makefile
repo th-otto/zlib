@@ -58,15 +58,9 @@ SRCDIR=../
 ZINC=
 ZINCOUT=-I. -I.. -I$(SRCDIR)contrib/minizip
 
-OBJZ = adler32.o crc32.o deflate.o infback.o inffast.o inflate.o inftrees.o trees.o zutil.o
-OBJG = compress.o uncompr.o gzclose.o gzlib.o gzread.o gzwrite.o
-OBJM = ioapi.o zip.o unzip.o iowin32.o
-OBJC = $(OBJZ) $(OBJG) $(OBJM)
+OBJC = zlib.o
 
-PIC_OBJZ = header.lo zlibslb.lo zlibinit.lo adler32.lo crc32.lo deflate.lo infback.lo inffast.lo inflate.lo inftrees.lo trees.lo zutil.lo
-PIC_OBJG = compress.lo uncompr.lo gzclose.lo gzlib.lo gzread.lo gzwrite.lo
-PIC_OBJM = ioapi.lo zip.lo unzip.lo iowin32.lo
-PIC_OBJC = $(PIC_OBJZ) $(PIC_OBJG) $(PIC_OBJM)
+PIC_OBJC = header.lo zlibslb.lo zlibinit.lo zlib.lo
 
 OBJS = $(OBJC)
 
@@ -315,62 +309,9 @@ minigzip64.lo: $(SRCDIR)test/minigzip.c $(SRCDIR)zlib.h $(SRCDIR)zconf.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) $(EXTRA_CFLAGS) -D_FILE_OFFSET_BITS=64 -c -o $@ $<
 
 
-adler32.o: $(SRCDIR)adler32.c
+zlib.o: zlib.c
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c -o $@ $<
 
-crc32.o: $(SRCDIR)crc32.c
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c -o $@ $<
-
-deflate.o: $(SRCDIR)deflate.c
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c -o $@ $<
-
-infback.o: $(SRCDIR)infback.c
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c -o $@ $<
-
-inffast.o: $(SRCDIR)inffast.c
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c -o $@ $<
-
-inflate.o: $(SRCDIR)inflate.c
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c -o $@ $<
-
-inftrees.o: $(SRCDIR)inftrees.c
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c -o $@ $<
-
-trees.o: $(SRCDIR)trees.c
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c -o $@ $<
-
-zutil.o: $(SRCDIR)zutil.c
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c -o $@ $<
-
-compress.o: $(SRCDIR)compress.c
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c -o $@ $<
-
-uncompr.o: $(SRCDIR)uncompr.c
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c -o $@ $<
-
-gzclose.o: $(SRCDIR)gzclose.c
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c -o $@ $<
-
-gzlib.o: $(SRCDIR)gzlib.c
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c -o $@ $<
-
-gzread.o: $(SRCDIR)gzread.c
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c -o $@ $<
-
-gzwrite.o: $(SRCDIR)gzwrite.c
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c -o $@ $<
-
-ioapi.o: $(SRCDIR)contrib/minizip/ioapi.c
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c -o $@ $<
-
-iowin32.o: $(SRCDIR)contrib/minizip/iowin32.c
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c -o $@ $<
-
-zip.o: $(SRCDIR)contrib/minizip/zip.c
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c -o $@ $<
-
-unzip.o: $(SRCDIR)contrib/minizip/unzip.c
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c -o $@ $<
 
 
 slbexec.o: slbexec.S
@@ -389,62 +330,9 @@ zlibinit.lo: zlibinit.c
 zlibslb.lo: zlibslb.c
 	$(CC) $(SFLAGS) $(CPPFLAGS) -c -o $@ $<
 
-adler32.lo: $(SRCDIR)adler32.c
+zlib.lo: zlib.c
 	$(CC) $(SFLAGS) $(CPPFLAGS) -c -o $@ $<
 
-crc32.lo: $(SRCDIR)crc32.c
-	$(CC) $(SFLAGS) $(CPPFLAGS) -c -o $@ $<
-
-deflate.lo: $(SRCDIR)deflate.c
-	$(CC) $(SFLAGS) $(CPPFLAGS) -c -o $@ $<
-
-infback.lo: $(SRCDIR)infback.c
-	$(CC) $(SFLAGS) $(CPPFLAGS) -c -o $@ $<
-
-inffast.lo: $(SRCDIR)inffast.c
-	$(CC) $(SFLAGS) $(CPPFLAGS) -c -o $@ $<
-
-inflate.lo: $(SRCDIR)inflate.c
-	$(CC) $(SFLAGS) $(CPPFLAGS) -c -o $@ $<
-
-inftrees.lo: $(SRCDIR)inftrees.c
-	$(CC) $(SFLAGS) $(CPPFLAGS) -c -o $@ $<
-
-trees.lo: $(SRCDIR)trees.c
-	$(CC) $(SFLAGS) $(CPPFLAGS) -c -o $@ $<
-
-zutil.lo: $(SRCDIR)zutil.c
-	$(CC) $(SFLAGS) $(CPPFLAGS) -c -o $@ $<
-
-compress.lo: $(SRCDIR)compress.c
-	$(CC) $(SFLAGS) $(CPPFLAGS) -c -o $@ $<
-
-uncompr.lo: $(SRCDIR)uncompr.c
-	$(CC) $(SFLAGS) $(CPPFLAGS) -c -o $@ $<
-
-gzclose.lo: $(SRCDIR)gzclose.c
-	$(CC) $(SFLAGS) $(CPPFLAGS) -c -o $@ $<
-
-gzlib.lo: $(SRCDIR)gzlib.c
-	$(CC) $(SFLAGS) $(CPPFLAGS) -c -o $@ $<
-
-gzread.lo: $(SRCDIR)gzread.c
-	$(CC) $(SFLAGS) $(CPPFLAGS) -c -o $@ $<
-
-gzwrite.lo: $(SRCDIR)gzwrite.c
-	$(CC) $(SFLAGS) $(CPPFLAGS) -c -o $@ $<
-
-ioapi.lo: $(SRCDIR)contrib/minizip/ioapi.c zlibslb.h
-	$(CC) $(SFLAGS) $(CPPFLAGS) -c -o $@ $<
-
-iowin32.lo: $(SRCDIR)contrib/minizip/iowin32.c zlibslb.h
-	$(CC) $(SFLAGS) $(CPPFLAGS) -c -o $@ $<
-
-zip.lo: $(SRCDIR)contrib/minizip/zip.c zlibslb.h
-	$(CC) $(SFLAGS) $(CPPFLAGS) -c -o $@ $<
-
-unzip.lo: $(SRCDIR)contrib/minizip/unzip.c zlibslb.h
-	$(CC) $(SFLAGS) $(CPPFLAGS) -c -o $@ $<
 
 
 $(SHAREDTARGET): $(PIC_OBJS) $(STATICLIB)
@@ -628,25 +516,37 @@ tags:
 headerpc.s: header.S exports.h symbols.h zlibver.h Makefile
 	$(CPP) $(CPPFLAGS) -U__USER_LABEL_PREFIX__ -D__USER_LABEL_PREFIX__= $< | sed -e 's/;/\n /g' -e 's/%//g' -e 's/jbra/jmp/' -e 's/SHAREDLIB/"$(SHAREDLIB)"/' > $@
 
-adler32.o zutil.o: $(SRCDIR)zutil.h $(SRCDIR)zlib.h $(SRCDIR)zconf.h
-gzclose.o gzlib.o gzread.o gzwrite.o: $(SRCDIR)zlib.h $(SRCDIR)zconf.h $(SRCDIR)gzguts.h
-compress.o example.o minigzip.o uncompr.o: $(SRCDIR)zlib.h $(SRCDIR)zconf.h
-crc32.o: $(SRCDIR)zutil.h $(SRCDIR)zlib.h $(SRCDIR)zconf.h $(SRCDIR)crc32.h
-deflate.o: $(SRCDIR)deflate.h $(SRCDIR)zutil.h $(SRCDIR)zlib.h $(SRCDIR)zconf.h
-infback.o inflate.o: $(SRCDIR)zutil.h $(SRCDIR)zlib.h $(SRCDIR)zconf.h $(SRCDIR)inftrees.h $(SRCDIR)inflate.h $(SRCDIR)inffast.h $(SRCDIR)inffixed.h
-inffast.o: $(SRCDIR)zutil.h $(SRCDIR)zlib.h $(SRCDIR)zconf.h $(SRCDIR)inftrees.h $(SRCDIR)inflate.h $(SRCDIR)inffast.h
-inftrees.o: $(SRCDIR)zutil.h $(SRCDIR)zlib.h $(SRCDIR)zconf.h $(SRCDIR)inftrees.h
-trees.o: $(SRCDIR)deflate.h $(SRCDIR)zutil.h $(SRCDIR)zlib.h $(SRCDIR)zconf.h $(SRCDIR)trees.h
-
-adler32.lo zutil.lo: $(SRCDIR)zutil.h $(SRCDIR)zlib.h $(SRCDIR)zconf.h zlibslb.h zlibstr.h
-gzclose.lo gzlib.lo gzread.lo gzwrite.lo: $(SRCDIR)zlib.h $(SRCDIR)zconf.h $(SRCDIR)gzguts.h zlibslb.h zlibstr.h
-compress.lo example.lo minigzip.lo uncompr.lo: $(SRCDIR)zlib.h $(SRCDIR)zconf.h zlibslb.h zlibstr.h
-crc32.lo: $(SRCDIR)zutil.h $(SRCDIR)zlib.h $(SRCDIR)zconf.h $(SRCDIR)crc32.h zlibslb.h zlibstr.h
-deflate.lo: $(SRCDIR)deflate.h $(SRCDIR)zutil.h $(SRCDIR)zlib.h $(SRCDIR)zconf.h zlibslb.h zlibstr.h
-infback.lo inflate.lo: $(SRCDIR)zutil.h $(SRCDIR)zlib.h $(SRCDIR)zconf.h $(SRCDIR)inftrees.h $(SRCDIR)inflate.h $(SRCDIR)inffast.h $(SRCDIR)inffixed.h zlibslb.h zlibstr.h
-inffast.lo: $(SRCDIR)zutil.h $(SRCDIR)zlib.h $(SRCDIR)zconf.h $(SRCDIR)inftrees.h $(SRCDIR)inflate.h $(SRCDIR)inffast.h zlibslb.h zlibstr.h
-inftrees.lo: $(SRCDIR)zutil.h $(SRCDIR)zlib.h $(SRCDIR)zconf.h $(SRCDIR)inftrees.h zlibslb.h zlibstr.h
-trees.lo: $(SRCDIR)deflate.h $(SRCDIR)zutil.h $(SRCDIR)zlib.h $(SRCDIR)zconf.h $(SRCDIR)trees.h zlibslb.h zlibstr.h
+zlib.o zlib.lo: \
+	zlib.c \
+	$(SRCDIR)zutil.h \
+	$(SRCDIR)zlib.h \
+	$(SRCDIR)zconf.h \
+	$(SRCDIR)gzguts.h \
+	$(SRCDIR)crc32.h \
+	$(SRCDIR)inftrees.h \
+	$(SRCDIR)inflate.h \
+	$(SRCDIR)inffast.h \
+	$(SRCDIR)inffixed.h \
+	$(SRCDIR)adler32.c \
+	$(SRCDIR)crc32.c \
+	$(SRCDIR)deflate.c \
+	$(SRCDIR)infback.c \
+	$(SRCDIR)inffast.c \
+	$(SRCDIR)inflate.c \
+	$(SRCDIR)inftrees.c \
+	$(SRCDIR)trees.c \
+	$(SRCDIR)zutil.c \
+	$(SRCDIR)compress.c \
+	$(SRCDIR)uncompr.c \
+	$(SRCDIR)gzclose.c \
+	$(SRCDIR)gzlib.c \
+	$(SRCDIR)gzread.c \
+	$(SRCDIR)gzwrite.c \
+	$(SRCDIR)contrib/minizip/ioapi.c \
+	$(SRCDIR)contrib/minizip/zip.c \
+	$(SRCDIR)contrib/minizip/unzip.c \
+	$(SRCDIR)contrib/minizip/iowin32.c \
+	$(empty)
 
 zlibinit.lo: exports.h zlibslb.h zlibstr.h
 header.lo: exports.h symbols.h zlibver.h

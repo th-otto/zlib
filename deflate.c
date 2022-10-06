@@ -282,7 +282,7 @@ int ZEXPORT deflateInit2_(
         windowBits = -windowBits;
     }
     else if (windowBits > 15) {
-#ifdef GZIP
+#ifndef NO_GZIP
         wrap = 2;       /* write gzip wrapper instead */
 #endif
         windowBits -= 16;
@@ -392,7 +392,7 @@ local int deflateStateCheck (z_streamp strm)
         return 1;
     s = strm->state;
     if (s == Z_NULL || s->strm != strm || (s->status != INIT_STATE &&
-#ifdef GZIP
+#ifndef NO_GZIP
                                            s->status != GZIP_STATE &&
 #endif
                                            s->status != EXTRA_STATE &&
@@ -511,12 +511,12 @@ int ZEXPORT deflateResetKeep (z_streamp strm)
         s->wrap = -s->wrap; /* was made negative by deflate(..., Z_FINISH); */
     }
     s->status =
-#ifdef GZIP
+#ifndef NO_GZIP
         s->wrap == 2 ? GZIP_STATE :
 #endif
         INIT_STATE;
     strm->adler =
-#ifdef GZIP
+#ifndef NO_GZIP
         s->wrap == 2 ? crc32(0L, Z_NULL, 0) :
 #endif
         adler32(0L, Z_NULL, 0);
@@ -614,8 +614,9 @@ int ZEXPORT deflateParams(z_streamp strm, int level, int strategy)
         if (s->level == 0 && s->matches != 0) {
             if (s->matches == 1)
                 slide_hash(s);
-            else
+            else {
                 CLEAR_HASH(s);
+            }
             s->matches = 0;
         }
         s->level = level;
@@ -681,7 +682,7 @@ uLong ZEXPORT deflateBound(z_streamp strm, uLong sourceLen)
     case 1:                                 /* zlib wrapper */
         wraplen = 6 + (s->strstart ? 4 : 0);
         break;
-#ifdef GZIP
+#ifndef NO_GZIP
     case 2:                                 /* gzip wrapper */
         wraplen = 18;
         if (s->gzhead != Z_NULL) {          /* user-supplied gzip header */
@@ -850,7 +851,7 @@ int ZEXPORT deflate (z_streamp strm, int flush)
             return Z_OK;
         }
     }
-#ifdef GZIP
+#ifndef NO_GZIP
     if (s->status == GZIP_STATE) {
         /* gzip header */
         strm->adler = crc32(0L, Z_NULL, 0);
@@ -1052,7 +1053,7 @@ int ZEXPORT deflate (z_streamp strm, int flush)
     if (s->wrap <= 0) return Z_STREAM_END;
 
     /* Write the trailer */
-#ifdef GZIP
+#ifndef NO_GZIP
     if (s->wrap == 2) {
         put_byte(s, (Byte)(strm->adler & 0xff));
         put_byte(s, (Byte)((strm->adler >> 8) & 0xff));
@@ -1173,7 +1174,7 @@ local unsigned read_buf(z_streamp strm, Bytef *buf, uInt size)
     if (strm->state->wrap == 1) {
         strm->adler = adler32(strm->adler, buf, len);
     }
-#ifdef GZIP
+#ifndef NO_GZIP
     else if (strm->state->wrap == 2) {
         strm->adler = crc32(strm->adler, buf, len);
     }

@@ -512,7 +512,7 @@ local z_word_t crc_word_big(z_word_t data)
 #endif
 
 /* ========================================================================= */
-unsigned long ZEXPORT crc32_z(unsigned long crc, const unsigned char FAR *buf, z_size_t len)
+uLong ZEXPORT crc32_z(uLong crc, const unsigned char FAR *buf, z_size_t len)
 {
     /* Return initial CRC, if requested. */
     if (buf == Z_NULL) return 0;
@@ -854,6 +854,7 @@ uLong ZEXPORT crc32_combine(uLong crc1, uLong crc2, z_off_t len2)
 }
 
 /* ========================================================================= */
+ZEXTERN uLong ZEXPORT crc32_combine_gen64 OF((z_off64_t));
 uLong ZEXPORT crc32_combine_gen64(z_off64_t len2)
 {
 #ifdef DYNAMIC_CRC_TABLE
@@ -873,3 +874,7 @@ uLong crc32_combine_op(uLong crc1, uLong crc2, uLong op)
 {
     return multmodp(op, crc1) ^ crc2;
 }
+
+#undef N
+#undef W
+

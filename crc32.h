@@ -1,3 +1,6 @@
+#ifndef __ZLIB_CRC32_H__
+#define __ZLIB_CRC32_H__
+
 /* crc32.h -- tables for rapid CRC calculation
  * Generated automatically by crc32.c
  */
@@ -9444,3 +9447,5 @@ local const z_crc_t FAR x2n_table[] = {
     0x9fec022aUL, 0x6c8dedc4UL, 0x15d6874dUL, 0x5fde7a4eUL, 0xbad90e37UL,
     0x2e4e5eefUL, 0x4eaba214UL, 0xa8a472c0UL, 0x429a969eUL, 0x148d302aUL,
     0xc40ba6d0UL, 0xc4e22c3cUL};
+
+#endif /* __ZLIB_CRC32_H__ */
