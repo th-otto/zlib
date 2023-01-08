@@ -1911,7 +1911,7 @@ ZEXTERN z_int_t        ZEXPORT inflateValidate OF((z_streamp, z_int_t));
 ZEXTERN unsigned long  ZEXPORT inflateCodesUsed OF ((z_streamp));
 ZEXTERN z_int_t        ZEXPORT inflateResetKeep OF((z_streamp));
 ZEXTERN z_int_t        ZEXPORT deflateResetKeep OF((z_streamp));
-#if defined(_WIN32) && !defined(Z_SOLO)
+#if (defined(_WIN32) || defined(__CYGWIN__)) && !defined(Z_SOLO)
 ZEXTERN gzFile         ZEXPORT gzopen_w OF((const wchar_t *path,
                                             const char *mode));
 #endif

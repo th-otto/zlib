@@ -6,7 +6,7 @@
 #define ZLIB_COMPILATION
 #include "gzguts.h"
 
-#if defined(_WIN32) && !defined(__BORLANDC__)
+#if defined(_WIN32) && !defined(__BORLANDC__) && !defined(__MINGW32__) && !defined(__CYGWIN__)
 #  define LSEEK _lseeki64
 #else
 #if defined(_LARGEFILE64_SOURCE) && _LFS64_LARGEFILE-0
@@ -198,7 +198,7 @@ local gzFile gz_open(const char *path, int fd, const char *mode)
     }
     else
 #endif
-        len = strlen((const char *)path);
+        len = strlen(path);
     state->path = (char *)z_malloc(len + 1);
     if (state->path == NULL) {
         z_free(state);
@@ -238,9 +238,9 @@ local gzFile gz_open(const char *path, int fd, const char *mode)
     /* open the file with the appropriate flags (or just use fd) */
     state->fd = fd > -1 ? fd : (
 #ifdef WIDECHAR
-        fd == -2 ? open(state->path, oflag, 0666) :
+        fd == -2 ? _wopen((const wchar_t *)path, oflag, 0666) :
 #endif
-        open((const char *)path, oflag, 0666));
+        open(path, oflag, 0666));
     if (state->fd == -1) {
         z_free(state->path);
         z_free(state);

@@ -313,7 +313,7 @@ extern z_int_t ZEXPORT zipOpenNewFileInZip4_64 OF((zipFile file,
 
 extern z_int_t ZEXPORT zipWriteInFileInZip OF((zipFile file,
                        const void* buf,
-                       unsigned len));
+                       uInt len));
 /*
   Write data in the zipfile
 */

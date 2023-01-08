@@ -5,6 +5,7 @@
 
 /* @(#) $Id$ */
 
+#define ZLIB_INTERNAL
 #define ZLIB_COMPILATION
 #include "zlib.h"
 
