@@ -484,7 +484,7 @@ static void file_uncompress(const char *file)
 	const char *outfile;
 	FILE *out;
 	gzFile in;
-	unsigned len = strlen(file);
+	z_size_t len = strlen(file);
 
 	if (len + strlen(GZ_SUFFIX) >= sizeof(buf))
 	{

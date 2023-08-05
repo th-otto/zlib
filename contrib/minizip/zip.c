@@ -1459,11 +1459,6 @@ extern z_int_t ZEXPORT zipWriteInFileInZip (zipFile file,const void* buf,uInt le
           {
               uLong uTotalOutBefore = zi->ci.stream.total_out;
               err=deflate(&zi->ci.stream,  Z_NO_FLUSH);
-              if(uTotalOutBefore > zi->ci.stream.total_out)
-              {
-                int bBreak = 0;
-                bBreak++;
-              }
 
               zi->ci.pos_in_buffered_data += (uInt)(zi->ci.stream.total_out - uTotalOutBefore) ;
           }
@@ -1950,7 +1945,7 @@ extern z_int_t ZEXPORT zipRemoveExtraInfoBlock (char* pData, z_int_t* dataLen, z
 
   int retVal = ZIP_OK;
 
-  if(pData == NULL || *dataLen < 4)
+  if(pData == NULL || dataLen == NULL || *dataLen < 4)
     return ZIP_PARAMERROR;
 
   pNewHeader = (char*)ALLOC((unsigned)*dataLen);

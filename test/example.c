@@ -543,19 +543,18 @@ int main(int argc, char *argv[])
 
 	if ((ret = slb_zlib_open(NULL)) < 0)
 	{
-		fprintf(stderr, "cannot load zlib.slb: %ld\n", ret);
-		exit(1);
+		fprintf(stderr, "cannot load %s: %ld\n", ZLIB_SHAREDLIB_NAME, ret);
+		return 1;
 	}
 #endif
 
 	if (zlibVersion()[0] != myVersion[0])
 	{
-		fprintf(stderr, "incompatible zlib version\n");
-		exit(1);
-
+		fprintf(stderr, "incompatible zlib version linked: %s\n", zlibVersion());
+		return 1;
 	} else if (strcmp(zlibVersion(), ZLIB_VERSION) != 0)
 	{
-		fprintf(stderr, "warning: different zlib version\n");
+		fprintf(stderr, "warning: different zlib version: %s\n", zlibVersion());
 	}
 
 	printf("zlib version %s = 0x%04x, compile flags = 0x%lx\n", ZLIB_VERSION, ZLIB_VERNUM, zlibCompileFlags());
@@ -568,7 +567,7 @@ int main(int argc, char *argv[])
 	if (compr == Z_NULL || uncompr == Z_NULL)
 	{
 		printf("out of memory\n");
-		exit(1);
+		return 1;
 	}
 
 #ifdef Z_SOLO

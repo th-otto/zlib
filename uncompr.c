@@ -29,7 +29,7 @@ struct internal_state      {int dummy;}; /* for buggy compilers */
    Z_DATA_ERROR if the input data was corrupted, including if the input data is
    an incomplete zlib stream.
 */
-int ZEXPORT uncompress2 (Bytef *dest, uLongf *destLen, const Bytef *source, uLong *sourceLen)
+int ZEXPORT uncompress2(Bytef *dest, uLongf *destLen, const Bytef *source, uLong *sourceLen)
 {
     z_stream stream;
     int err;
@@ -84,7 +84,7 @@ int ZEXPORT uncompress2 (Bytef *dest, uLongf *destLen, const Bytef *source, uLon
            err;
 }
 
-int ZEXPORT uncompress (Bytef *dest, uLongf *destLen, const Bytef *source, uLong sourceLen)
+int ZEXPORT uncompress(Bytef *dest, uLongf *destLen, const Bytef *source, uLong sourceLen)
 {
     return uncompress2(dest, destLen, source, &sourceLen);
 }
