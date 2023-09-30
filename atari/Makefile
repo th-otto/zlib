@@ -314,8 +314,12 @@ zlib.o: zlib.c
 
 
 
+# slbexec.S must also be compilabe by pure-c, so we cannot preprocess it
+# figure out the symbol prefix here
+USER_LABEL_PREFIX := $(shell echo '__USER_LABEL_PREFIX__' | $(CROSS_PREFIX)gcc -E -P - 2>/dev/null)
+ASFLAGS = -D_BasPag=$(USER_LABEL_PREFIX)_base -Wa,--register-prefix-optional
 slbexec.o: slbexec.S
-	$(CC) $(CFLAGS) -Wa,--mri $(CPPFLAGS) -D_BasPag=__base -c -o $@ $<
+	$(CC) $(CFLAGS) $(CPPFLAGS) $(ASFLAGS) -c -o $@ $<
 
 
 header.lo: header.S
