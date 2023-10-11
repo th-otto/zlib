@@ -18,7 +18,8 @@ CROSS_PREFIX=m68k-atari-mint-
 CC = $(CROSS_PREFIX)gcc
 
 CPU_CFLAGS=-m68020-60
-CFLAGS=-O2 -Wall -fomit-frame-pointer -Wstrict-prototypes -Wmissing-prototypes -Werror $(CPU_CFLAGS)
+WARN = -Wall -Wstrict-prototypes -Wmissing-prototypes -Wdeclaration-after-statement -Werror
+CFLAGS=-O2 -fomit-frame-pointer $(WARN) $(CPU_CFLAGS)
 CPPFLAGS= -D_LARGEFILE64_SOURCE=1 $(ZINCOUT)
 SFLAGS=$(CFLAGS) -DZLIB_SLB
 LDFLAGS=

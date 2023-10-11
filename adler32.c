@@ -13,9 +13,8 @@
 struct internal_state      {int dummy;}; /* for buggy compilers */
 #endif
 
-local uLong adler32_combine_ OF((uLong adler1, uLong adler2, z_off64_t len2));
 #if !defined(_LARGEFILE64_SOURCE) || _LFS64_LARGEFILE-0 == 0
-ZEXTERN uLong ZEXPORT adler32_combine64 OF((uLong, uLong, z_off64_t));
+ZEXTERN uLong ZEXPORT adler32_combine64(uLong, uLong, z_off64_t);
 #endif
 
 #define BASE 65521UL     /* largest prime smaller than 65536 */

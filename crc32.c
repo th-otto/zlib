@@ -24,7 +24,7 @@
 #include "zutil.h"      /* for Z_U4, Z_U8, z_crc_t, and FAR definitions */
 
 #if !defined(_LARGEFILE64_SOURCE) || _LFS64_LARGEFILE-0 == 0
-ZEXTERN uLong ZEXPORT crc32_combine64 OF((uLong, uLong, z_off64_t));
+ZEXTERN uLong ZEXPORT crc32_combine64(uLong, uLong, z_off64_t);
 #endif
 
 #ifndef NO_DUMMY_DECL
@@ -105,19 +105,6 @@ struct internal_state      {int dummy;}; /* for buggy compilers */
 #  define ARMCRC32
 #endif
 
-/* Local functions. */
-local z_crc_t multmodp OF((z_crc_t a, z_crc_t b));
-local z_crc_t x2nmodp OF((z_off64_t n, unsigned k));
-
-#if defined(W) && (!defined(ARMCRC32) || defined(DYNAMIC_CRC_TABLE))
-    local z_word_t byte_swap OF((z_word_t word));
-#endif
-
-#if defined(W) && !defined(ARMCRC32)
-    local z_crc_t crc_word OF((z_word_t data));
-    local z_word_t crc_word_big OF((z_word_t data));
-#endif
-
 #if defined(W) && (!defined(ARMCRC32) || defined(DYNAMIC_CRC_TABLE))
 /*
   Swap the bytes in a z_word_t to convert between little and big endian. Any
@@ -147,19 +134,75 @@ local z_word_t byte_swap(z_word_t word)
 }
 #endif
 
+#ifdef DYNAMIC_CRC_TABLE
+/* =========================================================================
+ * Table of powers of x for combining CRC-32s, filled in by make_crc_table()
+ * below.
+ */
+   local z_crc_t FAR x2n_table[32];
+#else
+/* =========================================================================
+ * Tables for byte-wise and braided CRC-32 calculations, and a table of powers
+ * of x for combining CRC-32s, all made by make_crc_table().
+ */
+#  include "crc32.h"
+#endif
+
 /* CRC polynomial. */
 #define POLY 0xedb88320UL        /* p(x) reflected, with x^32 implied */
 
+/*
+  Return a(x) multiplied by b(x) modulo p(x), where p(x) is the CRC polynomial,
+  reflected. For speed, this requires that a not be zero.
+ */
+local z_crc_t multmodp(z_crc_t a, z_crc_t b)
+{
+    z_crc_t m, p;
+
+    m = (z_crc_t)1 << 31;
+    p = 0;
+    for (;;) {
+        if (a & m) {
+            p ^= b;
+            if ((a & (m - 1)) == 0)
+                break;
+        }
+        m >>= 1;
+        b = b & 1 ? (b >> 1) ^ POLY : b >> 1;
+    }
+    return p;
+}
+
+/*
+  Return x^(n * 2^k) modulo p(x). Requires that x2n_table[] has been
+  initialized.
+ */
+local z_crc_t x2nmodp(z_off64_t n, unsigned k)
+{
+    z_crc_t p;
+
+    p = (z_crc_t)1 << 31;           /* x^0 == 1 */
+    while (n) {
+        if (n & 1)
+            p = multmodp(x2n_table[k & 31], p);
+        n >>= 1;
+        k++;
+    }
+    return p;
+}
+
 #ifdef DYNAMIC_CRC_TABLE
+/* =========================================================================
+ * Build the tables for byte-wise and braided CRC-32 calculations, and a table
+ * of powers of x for combining CRC-32s.
+ */
 
 local z_crc_t FAR crc_table[256];
-local z_crc_t FAR x2n_table[32];
-local void make_crc_table OF((void));
 #ifdef W
    local z_word_t FAR crc_big_table[256];
    local z_crc_t FAR crc_braid_table[W][256];
    local z_word_t FAR crc_braid_big_table[W][256];
-   local void braid OF((z_crc_t [][256], z_word_t [][256], int, int));
+   local void braid (z_crc_t [][256], z_word_t [][256], int, int);
 #endif
 
 /*
@@ -172,7 +215,6 @@ local void make_crc_table OF((void));
 
 /* Definition of once functionality. */
 typedef struct once_s once_t;
-local void once OF((once_t *, void (*)(void)));
 
 /* Check for the availability of atomics. */
 #if defined(__STDC__) && __STDC_VERSION__ >= 201112L && \
@@ -216,7 +258,6 @@ struct once_s {
 
 /* Test and set. Alas, not atomic, but tries to minimize the period of
    vulnerability. */
-local int test_and_set OF((int volatile *));
 local int test_and_set(int volatile *flag)
 {
     int was;
@@ -320,58 +361,12 @@ local void braid(z_crc_t ltl[][256], z_word_t big[][256], int n, int w)
 }
 #endif
 
-#else /* !DYNAMIC_CRC_TABLE */
-/* ========================================================================
- * Tables for byte-wise and braided CRC-32 calculations, and a table of powers
- * of x for combining CRC-32s, all made by make_crc_table().
- */
-#include "crc32.h"
 #endif /* DYNAMIC_CRC_TABLE */
 
 /* ========================================================================
  * Routines used for CRC calculation. Some are also required for the table
  * generation above.
  */
-
-/*
-  Return a(x) multiplied by b(x) modulo p(x), where p(x) is the CRC polynomial,
-  reflected. For speed, this requires that a not be zero.
- */
-local z_crc_t multmodp(z_crc_t a, z_crc_t b)
-{
-    z_crc_t m, p;
-
-    m = (z_crc_t)1 << 31;
-    p = 0;
-    for (;;) {
-        if (a & m) {
-            p ^= b;
-            if ((a & (m - 1)) == 0)
-                break;
-        }
-        m >>= 1;
-        b = b & 1 ? (b >> 1) ^ POLY : b >> 1;
-    }
-    return p;
-}
-
-/*
-  Return x^(n * 2^k) modulo p(x). Requires that x2n_table[] has been
-  initialized.
- */
-local z_crc_t x2nmodp(z_off64_t n, unsigned k)
-{
-    z_crc_t p;
-
-    p = (z_crc_t)1 << 31;           /* x^0 == 1 */
-    while (n) {
-        if (n & 1)
-            p = multmodp(x2n_table[k & 31], p);
-        n >>= 1;
-        k++;
-    }
-    return p;
-}
 
 /* =========================================================================
  * This function can be used by asm versions of crc32(), and to force the
@@ -558,8 +553,8 @@ uLong ZEXPORT crc32_z(uLong crc, const unsigned char FAR *buf, z_size_t len)
         words = (z_word_t const *)buf;
 
         /* Do endian check at execution time instead of compile time, since ARM
-           processors can change the endianess at execution time. If the
-           compiler knows what the endianess will be, it can optimize out the
+           processors can change the endianness at execution time. If the
+           compiler knows what the endianness will be, it can optimize out the
            check and the unused branch. */
         endian = 1;
         if (*(unsigned char *)&endian) {
@@ -867,7 +862,7 @@ uLong ZEXPORT crc32_combine(uLong crc1, uLong crc2, z_off_t len2)
 }
 
 /* ========================================================================= */
-ZEXTERN uLong ZEXPORT crc32_combine_gen64 OF((z_off64_t));
+ZEXTERN uLong ZEXPORT crc32_combine_gen64 (z_off64_t);
 uLong ZEXPORT crc32_combine_gen64(z_off64_t len2)
 {
 #ifdef DYNAMIC_CRC_TABLE

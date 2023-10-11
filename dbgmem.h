@@ -13,12 +13,6 @@
 #  define DEBUG_ALLOC 0
 #endif
 
-#ifndef STDC
-extern voidp  malloc OF((uInt size));
-extern voidp  calloc OF((uInt items, uInt size));
-extern void   free   OF((voidpf ptr));
-#endif
-
 void mem_test_start(void);
 int mem_test_end(void);
 

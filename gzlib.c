@@ -20,10 +20,6 @@
 struct internal_state      {int dummy;}; /* for buggy compilers */
 #endif
 
-/* Local functions */
-local void gz_reset OF((gz_statep));
-local gzFile gz_open OF((const char *, int, const char *));
-
 #if defined UNDER_CE
 
 /* Map the Windows error number in ERROR to a locale-dependent error message
@@ -322,8 +318,8 @@ int ZEXPORT gzbuffer(gzFile file, uInt size)
     /* check and set requested size */
     if ((size << 1) < size)
         return -1;              /* need to be able to double it */
-    if (size < 2)
-        size = 2;               /* need two bytes to check magic header */
+    if (size < 8)
+        size = 8;               /* needed to behave well with flushing */
     state->want = size;
     return 0;
 }

@@ -28,7 +28,7 @@
         #endif
 #endif
 
-#if defined(__APPLE__) || defined(__CYGWIN__) || defined(__MINT__) || defined(__PUREC__) || defined(__AHCC__)
+#if defined(__APPLE__) || defined(__CYGWIN__) || defined(__MINT__) || defined(__PUREC__) || defined(__AHCC__) || defined(__HAIKU__) || defined(MINIZIP_FOPEN_NO_64)
 /*
  * In darwin and perhaps other BSD variants off_t is a 64 bit value, hence no need for specific 64 bit functions
  * Ditto cygwin.
@@ -75,6 +75,8 @@
 #define MAXFILENAME (256)
 
 #ifdef _WIN32
+/* f: name of file to get info on, tmzip: return value: access,
+   modification and creation times, dt: dostime */
 static int filetime(const char *f, tm_zip *tmzip, uLong *dt)
 {
   int ret = 0;
@@ -96,6 +98,8 @@ static int filetime(const char *f, tm_zip *tmzip, uLong *dt)
 }
 #else
 #if defined(unix) || defined(__APPLE__)
+/* f: name of file to get info on, tmzip: return value: access,
+   modification and creation times, dt: dostime */
 static uLong filetime(char *f, tm_zip *tmzip, uLong *dt)
 {
   int ret=0;
@@ -112,7 +116,7 @@ static uLong filetime(char *f, tm_zip *tmzip, uLong *dt)
       len = MAXFILENAME;
 
     strncpy(name, f,MAXFILENAME-1);
-    /* strncpy doesnt append the trailing NULL, of the string is too long. */
+    /* strncpy doesn't append the trailing NULL, of the string is too long. */
     name[ MAXFILENAME ] = '\0';
 
     if (name[len - 1] == '/')
@@ -136,6 +140,8 @@ static uLong filetime(char *f, tm_zip *tmzip, uLong *dt)
   return ret;
 }
 #else
+/* f: name of file to get info on, tmzip: return value: access,
+   modification and creation times, dt: dostime */
 static uLong filetime(const char *f, tm_zip *tmzip, uLong *dt)
 {
   (void)f;
@@ -180,8 +186,7 @@ static void do_help(void)
 
 /* calculate the CRC32 of a file,
    because to encrypt a file, we need known the CRC32 of the file before */
-static int getFileCrc(const char* filenameinzip,void*buf,unsigned long size_buf,unsigned long* result_crc)
-{
+static int getFileCrc(const char* filenameinzip, void* buf, unsigned long size_buf, unsigned long* result_crc) {
    unsigned long calculate_crc=0;
    int err=ZIP_OK;
    FILE * fin = FOPEN_FUNC(filenameinzip,"rb");
@@ -219,8 +224,7 @@ static int getFileCrc(const char* filenameinzip,void*buf,unsigned long size_buf,
     return err;
 }
 
-static int isLargeFile(const char* filename)
-{
+static int isLargeFile(const char* filename) {
   int largeFile = 0;
   ZPOS64_T pos = 0;
   FILE* pFile = FOPEN_FUNC(filename, "rb");
@@ -230,7 +234,7 @@ static int isLargeFile(const char* filename)
     FSEEKO_FUNC(pFile, 0, SEEK_END);
     pos = FTELLO_FUNC(pFile);
 
-                printf("File : %s is %lld bytes\n", filename, pos);
+                printf("File : %s is %llu bytes\n", filename, pos);
 
     if(pos >= 0xffffffff)
      largeFile = 1;
@@ -319,7 +323,7 @@ int main(int argc, char **argv)
 
         zipok = 1 ;
         strncpy(filename_try, argv[zipfilenamearg],MAXFILENAME-1);
-        /* strncpy doesnt append the trailing NULL, of the string is too long. */
+        /* strncpy doesn't append the trailing NULL, of the string is too long. */
         filename_try[ MAXFILENAME ] = '\0';
 
         len=(int)strlen(filename_try);
@@ -389,10 +393,10 @@ int main(int argc, char **argv)
                   ((argv[i][1]=='o') || (argv[i][1]=='O') ||
                    (argv[i][1]=='a') || (argv[i][1]=='A') ||
                    (argv[i][1]=='p') || (argv[i][1]=='P') ||
-                   ((argv[i][1]>='0') || (argv[i][1]<='9'))) &&
+                   ((argv[i][1]>='0') && (argv[i][1]<='9'))) &&
                   (strlen(argv[i]) == 2)))
             {
-                FILE * fin;
+                FILE * fin = NULL;
                 size_t size_read;
                 const char* filenameinzip = argv[i];
                 const char *savefilenameinzip;

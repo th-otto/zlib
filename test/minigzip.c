@@ -20,48 +20,48 @@
 #include <stdlib.h>
 
 #ifdef USE_MMAP
-#include <sys/types.h>
-#include <sys/mman.h>
-#include <sys/stat.h>
+#  include <sys/types.h>
+#  include <sys/mman.h>
+#  include <sys/stat.h>
 #endif
 
 #if defined(MSDOS) || defined(OS2) || defined(WIN32) || defined(__CYGWIN__)
-#include <fcntl.h>
-#include <io.h>
-#ifdef UNDER_CE
-#include <stdlib.h>
-#endif
-#define SET_BINARY_MODE(file) setmode(fileno(file), O_BINARY)
+#  include <fcntl.h>
+#  include <io.h>
+#  ifdef UNDER_CE
+#    include <stdlib.h>
+#  endif
+#  define SET_BINARY_MODE(file) setmode(fileno(file), O_BINARY)
 #else
-#define SET_BINARY_MODE(file)
+#  define SET_BINARY_MODE(file)
 #endif
 
 #if defined(_MSC_VER) && _MSC_VER < 1900
-#define snprintf _snprintf
+#  define snprintf _snprintf
 #endif
 
 #ifdef VMS
-#define unlink delete
-#define GZ_SUFFIX "-gz"
+#  define unlink delete
+#  define GZ_SUFFIX "-gz"
 #endif
 #ifdef RISCOS
-#define unlink remove
-#define GZ_SUFFIX "-gz"
-#define fileno(file) file->__file
+#  define unlink remove
+#  define GZ_SUFFIX "-gz"
+#  define fileno(file) file->__file
 #endif
 #if defined(__MWERKS__) && __dest_os != __be_os && __dest_os != __win32_os
-#include <unix.h>						/* for fileno */
+#  include <unix.h> /* for fileno */
 #endif
 
 #if !defined(Z_HAVE_UNISTD_H) && !defined(_LARGEFILE64_SOURCE)
-#ifndef WIN32							/* unlink already in stdio.h for WIN32 */
-extern int unlink(const char *);
+#ifndef WIN32 /* unlink already in stdio.h for WIN32 */
+  extern int unlink(const char *);
 #endif
 #endif
 
 #if defined(UNDER_CE)
-#include <windows.h>
-#define perror(s) pwinerror(s)
+#  include <windows.h>
+#  define perror(s) pwinerror(s)
 
 /* Map the Windows error number in ERROR to a locale-dependent error
    message string and return a pointer to it.  Typically, the values
@@ -78,14 +78,14 @@ static char *strwinerror(DWORD error)
 	static char buf[1024];
 
 	wchar_t *msgbuf;
+	DWORD lasterr = GetLastError();
 	DWORD chars = FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER,
-								NULL,
-								error,
-								0,		/* Default language */
-								(LPVOID) & msgbuf,
-								0,
-								NULL);
-
+		NULL,
+		error,
+		0, /* Default language */
+		(LPVOID)&msgbuf,
+		0,
+		NULL);
 	if (chars != 0)
 	{
 		/* If there is an \r\n appended, zap it.  */
@@ -108,6 +108,7 @@ static char *strwinerror(DWORD error)
 		sprintf(buf, "unknown win32 error (%ld)", error);
 	}
 
+	SetLastError(lasterr);
 	return buf;
 }
 
@@ -123,7 +124,7 @@ static void pwinerror(const char *s)
 #endif /* UNDER_CE */
 
 #ifndef GZ_SUFFIX
-#define GZ_SUFFIX ".gz"
+#  define GZ_SUFFIX ".gz"
 #endif
 #define SUFFIX_LEN (sizeof(GZ_SUFFIX)-1)
 
@@ -132,19 +133,18 @@ static void pwinerror(const char *s)
 
 #undef local
 #ifdef MAXSEG_64K
-#define local static
+#  define local static
    /* Needed for systems with limitation on stack size. */
 #else
-#define local
+#  define local
 #endif
 
 #ifdef Z_SOLO
 /* for Z_SOLO, create simplified gz* functions using deflate and inflate */
 
 #if defined(Z_HAVE_UNISTD_H) || defined(Z_LARGE)
-#include <unistd.h>						/* for unlink() */
+#  include <unistd.h>       /* for unlink() */
 #endif
-
 
 static void *myalloc(void *q, unsigned int n, unsigned int m)
 {
@@ -168,25 +168,15 @@ typedef struct gzFile_s
 } *gzFile;
 
 gzFile gzopen(const char *, const char *);
-gzFile gzdopen(int, const char *);
-gzFile gz_open(const char *, int, const char *);
-int gzwrite(gzFile, const void *, unsigned);
-int gzread(gzFile, void *, unsigned);
-int gzclose(gzFile);
-const char *gzerror(gzFile, int *);
+gzFile gzdopen(z_int_t, const char *);
+gzFile gz_open(const char *, z_int_t, const char *);
+z_int_t gzwrite(gzFile, const void *, uInt);
+z_int_t gzread(gzFile, void *, uInt);
+z_int_t gzclose(gzFile);
+const char *gzerror(gzFile, z_int_t *);
 
 
-gzFile gzopen(const char *path, const char *mode)
-{
-	return gz_open(path, -1, mode);
-}
-
-gzFile gzdopen(int fd, const char *mode)
-{
-	return gz_open(NULL, fd, mode);
-}
-
-gzFile gz_open(const char *path, int fd, const char *mode)
+gzFile gz_open(const char *path, z_int_t fd, const char *mode)
 {
 	gzFile gz;
 	int ret;
@@ -225,7 +215,17 @@ gzFile gz_open(const char *path, int fd, const char *mode)
 }
 
 
-int gzwrite(gzFile gz, const void *buf, unsigned int len)
+gzFile gzopen(const char *path, const char *mode)
+{
+	return gz_open(path, -1, mode);
+}
+
+gzFile gzdopen(z_int_t fd, const char *mode)
+{
+	return gz_open(NULL, fd, mode);
+}
+
+z_int_t gzwrite(gzFile gz, const void *buf, uInt len)
 {
 	z_stream *strm;
 	unsigned char out[BUFLEN];
@@ -246,7 +246,7 @@ int gzwrite(gzFile gz, const void *buf, unsigned int len)
 }
 
 
-int gzread(gzFile gz, void *buf, unsigned int len)
+z_int_t gzread(gzFile gz, void *buf, uInt len)
 {
 	int ret;
 	unsigned got;
@@ -281,7 +281,7 @@ int gzread(gzFile gz, void *buf, unsigned int len)
 }
 
 
-int gzclose(gzFile gz)
+z_int_t gzclose(gzFile gz)
 {
 	z_stream *strm;
 	unsigned char out[BUFLEN];
@@ -311,7 +311,7 @@ int gzclose(gzFile gz)
 }
 
 
-const char *gzerror(gzFile gz, int *err)
+const char *gzerror(gzFile gz, z_int_t *err)
 {
 	*err = gz->err;
 	return gz->msg;
@@ -330,6 +330,46 @@ static void error(const char *msg)
 	fprintf(stderr, "%s: %s\n", prog, msg);
 	exit(1);
 }
+
+#ifdef USE_MMAP /* MMAP version, Miguel Albrecht <malbrech@eso.org> */
+
+/* Try compressing the input file at once using mmap. Return Z_OK if
+ * if success, Z_ERRNO otherwise.
+ */
+static int gz_compress_mmap(FILE *in, gzFile out)
+{
+	int len;
+	int err;
+	int ifd = fileno(in);
+	caddr_t buf;	/* mmap'ed buffer for the entire input file */
+	off_t buf_len;	/* length of the input file */
+	struct stat sb;
+
+	/* Determine the size of the file, needed for mmap: */
+	if (fstat(ifd, &sb) < 0)
+		return Z_ERRNO;
+	buf_len = sb.st_size;
+	if (buf_len <= 0)
+		return Z_ERRNO;
+
+	/* Now do the actual mmap: */
+	buf = mmap((caddr_t) 0, buf_len, PROT_READ, MAP_SHARED, ifd, (off_t) 0);
+	if (buf == (caddr_t) (-1))
+		return Z_ERRNO;
+
+	/* Compress the whole file at once: */
+	len = gzwrite(out, (char *) buf, (uInt) buf_len);
+
+	if (len != (int) buf_len)
+		error(gzerror(out, &err));
+
+	munmap(buf, buf_len);
+	fclose(in);
+	if (gzclose(out) != Z_OK)
+		error("failed gzclose");
+	return Z_OK;
+}
+#endif /* USE_MMAP */
 
 /* ===========================================================================
  * Compress input to output then close both files.
@@ -359,53 +399,13 @@ static void gz_compress(FILE *in, gzFile out)
 		if (len == 0)
 			break;
 
-		if (gzwrite(out, buf, (unsigned) len) != len)
+		if (gzwrite(out, buf, (uInt) len) != len)
 			error(gzerror(out, &err));
 	}
 	fclose(in);
 	if (gzclose(out) != Z_OK)
 		error("failed gzclose");
 }
-
-#ifdef USE_MMAP							/* MMAP version, Miguel Albrecht <malbrech@eso.org> */
-
-/* Try compressing the input file at once using mmap. Return Z_OK if
- * if success, Z_ERRNO otherwise.
- */
-static int gz_compress_mmap(FILE *in, gzFile out)
-{
-	int len;
-	int err;
-	int ifd = fileno(in);
-	caddr_t buf;						/* mmap'ed buffer for the entire input file */
-	off_t buf_len;						/* length of the input file */
-	struct stat sb;
-
-	/* Determine the size of the file, needed for mmap: */
-	if (fstat(ifd, &sb) < 0)
-		return Z_ERRNO;
-	buf_len = sb.st_size;
-	if (buf_len <= 0)
-		return Z_ERRNO;
-
-	/* Now do the actual mmap: */
-	buf = mmap((caddr_t) 0, buf_len, PROT_READ, MAP_SHARED, ifd, (off_t) 0);
-	if (buf == (caddr_t) (-1))
-		return Z_ERRNO;
-
-	/* Compress the whole file at once: */
-	len = gzwrite(out, (char *) buf, (unsigned) buf_len);
-
-	if (len != (int) buf_len)
-		error(gzerror(out, &err));
-
-	munmap(buf, buf_len);
-	fclose(in);
-	if (gzclose(out) != Z_OK)
-		error("failed gzclose");
-	return Z_OK;
-}
-#endif /* USE_MMAP */
 
 /* ===========================================================================
  * Uncompress input to output then close both files.
@@ -418,13 +418,13 @@ static void gz_uncompress(gzFile in, FILE *out)
 
 	for (;;)
 	{
-		len = (int) gzread(in, buf, (unsigned) sizeof(buf));
+		len = (int) gzread(in, buf, (uInt) sizeof(buf));
 		if (len < 0)
 			error(gzerror(in, &err));
 		if (len == 0)
 			break;
 
-		if ((int) fwrite(buf, 1, (unsigned) len, out) != len)
+		if ((int) fwrite(buf, 1, (uInt) len, out) != len)
 		{
 			error("failed fwrite");
 		}
