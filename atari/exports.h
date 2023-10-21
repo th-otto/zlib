@@ -7,7 +7,7 @@
  */
 
 #ifndef LIBFUNC
-# error "LIBFUNC must be defined before including this file"
+#error "LIBFUNC must be defined before including this file"
 #endif
 #ifndef LIBFUNC2
 #define LIBFUNC2(_fn, name, _nargs) LIBFUNC(_fn, name, _nargs)

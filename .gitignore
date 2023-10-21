@@ -66,6 +66,7 @@ libz.so*
 zlibver.h
 zimp_[0-9]*.c
 foo.gz
+.genimpsources
 
 m4/amversion.m4
 m4/auxdir.m4

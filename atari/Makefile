@@ -21,7 +21,7 @@ CPU_CFLAGS=-m68020-60
 WARN = -Wall -Wstrict-prototypes -Wmissing-prototypes -Wdeclaration-after-statement -Werror
 CFLAGS=-O2 -fomit-frame-pointer $(WARN) $(CPU_CFLAGS)
 CPPFLAGS= -D_LARGEFILE64_SOURCE=1 $(ZINCOUT)
-SFLAGS=$(CFLAGS) -DZLIB_SLB
+SFLAGS=-DZLIB_SLB
 LDFLAGS=
 TEST_LDFLAGS=-L. $(STATICLIB)
 LDSHARED=$(CC) -s -nostartfiles -Wl,--mprg-flags,0x0f
@@ -46,6 +46,9 @@ SHELL=/bin/sh
 EXE=
 AWK=awk
 
+srcdir = .
+top_srcdir=../
+
 prefix =/usr
 exec_prefix =${prefix}
 libdir =${exec_prefix}/lib
@@ -55,175 +58,70 @@ includedir =${prefix}/include
 mandir =${prefix}/share/man
 man3dir = ${mandir}/man3
 pkgconfigdir = ${libdir}/pkgconfig
-SRCDIR=../
 ZINC=
-ZINCOUT=-I. -I.. -I$(SRCDIR)contrib/minizip
+ZINCOUT=-I. -I.. -I$(top_srcdir)contrib/minizip
 
-OBJC = zlib.o
-
-PIC_OBJC = header.lo zlibslb.lo zlibinit.lo zlib.lo
-
-OBJS = $(OBJC)
-
-PIC_OBJS = $(PIC_OBJC)
-
-GEN_IMP_OBJS = \
-	zimp_0.o \
-	zimp_1.o \
-	zimp_2.o \
-	zimp_3.o \
-	zimp_4.o \
-	zimp_5.o \
-	zimp_6.o \
-	zimp_7.o \
-	zimp_8.o \
-	zimp_9.o \
-	zimp_10.o \
-	zimp_11.o \
-	zimp_12.o \
-	zimp_13.o \
-	zimp_14.o \
-	zimp_15.o \
-	zimp_16.o \
-	zimp_17.o \
-	zimp_18.o \
-	zimp_19.o \
-	zimp_20.o \
-	zimp_21.o \
-	zimp_22.o \
-	zimp_23.o \
-	zimp_24.o \
-	zimp_25.o \
-	zimp_26.o \
-	zimp_27.o \
-	zimp_28.o \
-	zimp_29.o \
-	zimp_30.o \
-	zimp_31.o \
-	zimp_32.o \
-	zimp_33.o \
-	zimp_34.o \
-	zimp_35.o \
-	zimp_36.o \
-	zimp_37.o \
-	zimp_38.o \
-	zimp_39.o \
-	zimp_40.o \
-	zimp_41.o \
-	zimp_42.o \
-	zimp_43.o \
-	zimp_44.o \
-	zimp_45.o \
-	zimp_46.o \
-	zimp_47.o \
-	zimp_48.o \
-	zimp_49.o \
-	zimp_50.o \
-	zimp_51.o \
-	zimp_52.o \
-	\
-	zimp_61.o \
-	zimp_62.o \
-	zimp_63.o \
-	zimp_64.o \
-	zimp_65.o \
-	zimp_66.o \
-	zimp_67.o \
-	zimp_68.o \
-	zimp_69.o \
-	zimp_70.o \
-	zimp_71.o \
-	zimp_72.o \
-	zimp_73.o \
-	zimp_74.o \
-	zimp_75.o \
-	zimp_76.o \
-	zimp_77.o \
-	zimp_78.o \
-	zimp_79.o \
-	zimp_80.o \
-	zimp_81.o \
-	zimp_82.o \
-	zimp_83.o \
-	zimp_84.o \
-	\
-	zimp_86.o \
-	zimp_87.o \
-	zimp_88.o \
-	zimp_89.o \
-	\
-	zimp_100.o \
-	zimp_101.o \
-	\
-	zimp_120.o \
-	zimp_121.o \
-	zimp_122.o \
-	\
-	zimp_124.o \
-	zimp_125.o \
-	zimp_126.o \
-	zimp_127.o \
-	zimp_128.o \
-	\
-	zimp_130.o \
-	zimp_131.o \
-	zimp_132.o \
-	zimp_133.o \
-	zimp_134.o \
-	zimp_135.o \
-	zimp_136.o \
-	\
-	zimp_140.o \
-	zimp_141.o \
-	zimp_142.o \
-	zimp_143.o \
-	zimp_144.o \
-	zimp_145.o \
-	zimp_146.o \
-	zimp_147.o \
-	zimp_148.o \
-	zimp_149.o \
-	zimp_150.o \
-	zimp_151.o \
-	zimp_152.o \
-	zimp_153.o \
-	zimp_154.o \
-	\
-	zimp_156.o \
-	zimp_157.o \
-	zimp_158.o \
-	zimp_159.o \
-	zimp_160.o \
-	zimp_161.o \
-	\
-	zimp_163.o \
-	zimp_164.o \
-	\
-	zimp_166.o \
-	zimp_167.o \
-	zimp_168.o \
-	zimp_169.o \
-	zimp_170.o \
-	zimp_171.o \
-	zimp_172.o \
-	zimp_173.o \
-	zimp_174.o \
-	zimp_175.o \
-	zimp_176.o \
-	zimp_177.o \
-	zimp_178.o \
+LIB_SRCS = \
+	$(top_srcdir)adler32.c \
+	$(top_srcdir)crc32.c \
+	$(top_srcdir)deflate.c \
+	$(top_srcdir)infback.c \
+	$(top_srcdir)inffast.c \
+	$(top_srcdir)inflate.c \
+	$(top_srcdir)inftrees.c \
+	$(top_srcdir)trees.c \
+	$(top_srcdir)zutil.c \
+	$(top_srcdir)compress.c \
+	$(top_srcdir)uncompr.c \
+	$(top_srcdir)gzclose.c \
+	$(top_srcdir)gzlib.c \
+	$(top_srcdir)gzread.c \
+	$(top_srcdir)gzwrite.c \
+	$(top_srcdir)contrib/minizip/ioapi.c \
+	$(top_srcdir)contrib/minizip/zip.c \
+	$(top_srcdir)contrib/minizip/unzip.c \
+	$(top_srcdir)contrib/minizip/iowin32.c \
 	$(empty)
-IMP_OBJS = zimpptr.o zimpopen.o libclose.o slbload.o slbexec.o \
-	$(GEN_IMP_OBJS)
+
+ALL_SRCS = \
+	$(LIB_SRCS) \
+	$(top_srcdir)test/example.c \
+	$(top_srcdir)test/minigzip.c \
+	$(top_srcdir)test/infcover.c \
+	$(empty)
+
+LIB_OBJS = $(subst .c,.o,$(notdir $(LIB_SRCS)))
+
+PIC_OBJS = header.lo zlibslb.lo zlibinit.lo $(LIB_OBJS:.o=.lo)
+
+GEN_IMP_SRCS := $(foreach num,$(shell seq 0 199),zimp_$(num).c)
+GEN_IMP_OBJS := $(GEN_IMP_SRCS:.c=.o)
 
 all: static shared all64
 
+IMP_OBJS = zimpptr.o zimpopen.o libclose.o slbload.o slbexec.o $(GEN_IMP_OBJS)
+zimpopen.o libclose.o: zlibstr.h zlibver.h
+
 static: $(STATICLIB) example$(EXE) minigzip$(EXE)
 
-shared: $(SHAREDLIB) $(GEN_IMP_OBJS:.o=.c) $(IMPORTLIB) examplesh$(EXE) minigzipsh$(EXE)
+shared: .genimpsources $(SHAREDLIB) $(IMPORTLIB) examplesh$(EXE) minigzipsh$(EXE)
 
-$(GEN_IMP_OBJS:.o=.c): genimp.awk exports.h
-	$(AWK) -f ./genimp.awk exports.h
+.genimpsources: $(srcdir)/genimp.awk $(srcdir)/exports.h
+	$(AWK) -f $(srcdir)/genimp.awk exports.h
+	touch $@
+
+define OBJ_template =
+$(notdir $(basename $(1))).o: $(1)
+	$(CC) $(CFLAGS) -DZLIB_STATIC $(INCLUDES) $(CPPFLAGS) -c $$< -o $$@
+
+$(notdir $(basename $(1))).lo: $(1)
+	$(CC) $(CFLAGS) $(SFLAGS) $(INCLUDES) $(CPPFLAGS) -c $$< -o $$@
+
+endef
+
+$(foreach file,$(ALL_SRCS) $(GEN_IMP_SRCS),$(eval $(call OBJ_template,$(file))))
+
+$(GEN_IMP_SRCS): .genimpsources
 
 all64: example64$(EXE) minigzip64$(EXE)
 
@@ -262,8 +160,7 @@ test64: all64
 	fi; \
 	rm -f $$TMP64
 
-infcover.o: $(SRCDIR)test/infcover.c $(SRCDIR)zlib.h $(SRCDIR)zconf.h
-	$(CC) $(CFLAGS) $(CPPFLAGS) -DZLIB_STATIC -c -o $@ $<
+infcover.o: $(top_srcdir)zlib.h $(top_srcdir)zconf.h
 
 infcover$(EXE): infcover.o $(STATICLIB)
 	$(CC) $(CFLAGS) $(CPPFLAGS) -o $@ infcover.o $(STATICLIB)
@@ -273,45 +170,35 @@ cover: infcover$(EXE)
 	./infcover$(EXE)
 	gcov inf*.c
 
-$(STATICLIB): $(OBJS)
+$(STATICLIB): $(LIB_OBJS)
 	$(RM) $@
 	$(AR) $(ARFLAGS) $@ $^
-
-zimpopen.o: zlibstr.h
 
 $(IMPORTLIB): $(IMP_OBJS)
 	$(RM) $@
 	$(AR) $(ARFLAGS) $@ $^
 
-$(IMP_OBJS): zlib_imp.h
+$(IMP_OBJS): zlib_imp.h .genimpsources
 
-example.o: $(SRCDIR)test/example.c $(SRCDIR)zlib.h $(SRCDIR)zconf.h
-	$(CC) $(CFLAGS) $(CPPFLAGS) $(EXTRA_CFLAGS) -DZLIB_STATIC -c -o $@ $<
+header.lo libinit.lo: $(srcdir)/header.S zlibver.h exports.h symbols.h .genimpsources
 
-example.lo: $(SRCDIR)test/example.c $(SRCDIR)zlib.h $(SRCDIR)zconf.h
-	$(CC) $(CFLAGS) $(CPPFLAGS) $(EXTRA_CFLAGS) -DZLIB_SLB -c -o $@ $<
+example.o example.lo: $(top_srcdir)zlib.h $(top_srcdir)zconf.h
 
-minigzip.o: $(SRCDIR)test/minigzip.c $(SRCDIR)zlib.h $(SRCDIR)zconf.h
-	$(CC) $(CFLAGS) $(CPPFLAGS) $(EXTRA_CFLAGS) -DZLIB_STATIC -c -o $@ $<
+example.lo: $(top_srcdir)test/example.c $(top_srcdir)zlib.h $(top_srcdir)zconf.h
 
-minigzip.lo: $(SRCDIR)test/minigzip.c $(SRCDIR)zlib.h $(SRCDIR)zconf.h
-	$(CC) $(CFLAGS) $(CPPFLAGS) $(EXTRA_CFLAGS) -DZLIB_SLB -c -o $@ $<
+minigzip.o minigzip.lo: $(top_srcdir)test/minigzip.c $(top_srcdir)zlib.h $(top_srcdir)zconf.h
 
-example64.o: $(SRCDIR)test/example.c $(SRCDIR)zlib.h $(SRCDIR)zconf.h
+example64.o: $(top_srcdir)test/example.c $(top_srcdir)zlib.h $(top_srcdir)zconf.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) $(EXTRA_CFLAGS) -DZLIB_STATIC -D_FILE_OFFSET_BITS=64 -c -o $@ $<
 
-example64.lo: $(SRCDIR)test/example.c $(SRCDIR)zlib.h $(SRCDIR)zconf.h
-	$(CC) $(CFLAGS) $(CPPFLAGS) $(EXTRA_CFLAGS) -D_FILE_OFFSET_BITS=64 -c -o $@ $(SRCDIR)test/example.c
+example64.lo: $(top_srcdir)test/example.c $(top_srcdir)zlib.h $(top_srcdir)zconf.h
+	$(CC) $(CFLAGS) $(CPPFLAGS) $(EXTRA_CFLAGS) -D_FILE_OFFSET_BITS=64 -c -o $@ $(top_srcdir)test/example.c
 
-minigzip64.o: $(SRCDIR)test/minigzip.c $(SRCDIR)zlib.h $(SRCDIR)zconf.h
+minigzip64.o: $(top_srcdir)test/minigzip.c $(top_srcdir)zlib.h $(top_srcdir)zconf.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) $(EXTRA_CFLAGS) -DZLIB_STATIC -D_FILE_OFFSET_BITS=64 -c -o $@ $<
 
-minigzip64.lo: $(SRCDIR)test/minigzip.c $(SRCDIR)zlib.h $(SRCDIR)zconf.h
+minigzip64.lo: $(top_srcdir)test/minigzip.c $(top_srcdir)zlib.h $(top_srcdir)zconf.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) $(EXTRA_CFLAGS) -D_FILE_OFFSET_BITS=64 -c -o $@ $<
-
-
-zlib.o: zlib.c
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c -o $@ $<
 
 
 
@@ -323,26 +210,23 @@ slbexec.o: slbexec.S
 	$(CC) $(CFLAGS) $(CPPFLAGS) $(ASFLAGS) -c -o $@ $<
 
 
-header.lo: header.S
-	$(CC) $(SFLAGS) $(CPPFLAGS) -DSHAREDLIB=\"$(SHAREDLIB)\" -c -o $@ $<
+header.lo: $(srcdir)/header.S
+	$(CC) $(CFLAGS) $(SFLAGS) $(CPPFLAGS) -DSHAREDLIB=\"$(SHAREDLIB)\" -c -o $@ $<
 
-zlibver.h: $(SRCDIR)zlib.h
+zlibver.h: $(top_srcdir)zlib.h
 	grep ZLIB_VERNUM $< > $@
 
-zlibinit.lo: zlibinit.c
-	$(CC) $(SFLAGS) $(CPPFLAGS) -c -o $@ $<
+zlibinit.lo: $(srcdir)/zlibinit.c
+	$(CC) $(CFLAGS) $(SFLAGS) $(CPPFLAGS) -c -o $@ $<
 
-zlibslb.lo: zlibslb.c
-	$(CC) $(SFLAGS) $(CPPFLAGS) -c -o $@ $<
-
-zlib.lo: zlib.c
-	$(CC) $(SFLAGS) $(CPPFLAGS) -c -o $@ $<
+zlibslb.lo: $(srcdir)/zlibslb.c
+	$(CC) $(CFLAGS) $(SFLAGS) $(CPPFLAGS) -c -o $@ $<
 
 
 
 $(SHAREDTARGET): $(PIC_OBJS) $(STATICLIB)
 	$(LDSHARED) $(SFLAGS) $(CPPFLAGS) -o $@ $(PIC_OBJS) $(LDSHAREDLIBC) $(LDFLAGS) $(EXTRA_LDFLAGS)
-	stripex $@
+	$(CROSS_PREFIX)stripex $@
 
 example$(EXE): example.o $(STATICLIB)
 	$(CC) $(CFLAGS) $(CPPFLAGS) $(EXTRA_CFLAGS) -o $@ example.o $(TEST_LDFLAGS) $(EXTRA_LDFLAGS)
@@ -376,7 +260,7 @@ install-libs: $(LIBS) zlib.pc
 	echo "install $(SHAREDTARGET) $(DESTDIR)$(sharedlibdir)"; \
 	install -m 755 $(SHAREDTARGET) $(DESTDIR)$(sharedlibdir); \
 	rm -f $(DESTDIR)$(man3dir)/zlib.3
-	install -m 644 $(SRCDIR)zlib.3 $(DESTDIR)$(man3dir)
+	install -m 644 $(top_srcdir)zlib.3 $(DESTDIR)$(man3dir)
 	rm -f $(DESTDIR)$(pkgconfigdir)/zlib.pc
 	install -m 644 zlib.pc $(DESTDIR)$(pkgconfigdir)
 # The ranlib in install is needed on NeXTSTEP which checks file times
@@ -385,12 +269,12 @@ install: install-libs
 	-@if [ ! -d $(DESTDIR)$(includedir)   ]; then mkdir -p $(DESTDIR)$(includedir); fi
 	-@if [ ! -d $(DESTDIR)$(includedir)/slb   ]; then mkdir -p $(DESTDIR)$(includedir)/slb; fi
 	rm -f $(DESTDIR)$(includedir)/zlib.h $(DESTDIR)$(includedir)/zconf.h $(DESTDIR)$(includedir)/slb/zlib.h
-	install -m 644 $(SRCDIR)zlib.h $(SRCDIR)zconf.h $(DESTDIR)$(includedir)
+	install -m 644 $(top_srcdir)zlib.h $(top_srcdir)zconf.h $(DESTDIR)$(includedir)
 	install -m 644 slb/zlib.h $(DESTDIR)$(includedir)/slb
 
 zlib.pc: Makefile
 	@( \
-	 VERSION=`sed -n -e '/VERSION "/s/.*"\(.*\)".*/\1/p' ${SRCDIR}zlib.h`; \
+	 VERSION=`sed -n -e '/VERSION "/s/.*"\(.*\)".*/\1/p' ${top_srcdir}zlib.h`; \
 	 echo "prefix=$(prefix)"; \
 	 echo 'exec_prefix=$${prefix}'; \
 	 echo 'libdir=$${exec_prefix}/lib'; \
@@ -455,8 +339,8 @@ GFA_OTHER = \
 gfa/minilib.inl: $(GFA_INL)
 	cat $(GFA_INL) > $@
 
-zlib.3.pdf: $(SRCDIR)zlib.3
-	groff -mandoc -f H -T ps $(SRCDIR)zlib.3 | ps2pdf - $@
+zlib.3.pdf: $(top_srcdir)zlib.3
+	groff -mandoc -f H -T ps $(top_srcdir)zlib.3 | ps2pdf - $@
 
 bindist: gfa/minilib.inl
 	$(MAKE) DESTDIR=/tmp/t/zlib PUREC=/windows/c/atari/pc/lib allbindist
@@ -480,7 +364,7 @@ allbindist:
 	rm -f $(DESTDIR)$(mandir)/*/*.gz
 	gzip $(DESTDIR)$(mandir)/*/*
 	install -d $(DESTDIR)/purec/include/slb $(DESTDIR)/purec/lib/000 $(DESTDIR)/purec/lib/020 $(DESTDIR)/purec/bin
-	install -m 644 $(SRCDIR)zlib.h $(SRCDIR)zconf.h $(DESTDIR)/purec/include
+	install -m 644 $(top_srcdir)zlib.h $(top_srcdir)zconf.h $(DESTDIR)/purec/include
 	install -m 644 slb/zlib.h $(DESTDIR)/purec/include/slb
 	cd $(DESTDIR)/purec/include && cr2nl -R -d .
 	install -m 644 $(PUREC)/000/zlib.lib $(PUREC)/000/zlibslb.lib $(DESTDIR)/purec/lib/000
@@ -489,69 +373,34 @@ allbindist:
 	install -m 644 gfa/minilib.inl $(GFA_INL) $(GFA_OTHER) $(DESTDIR)/gfa
 	$(MAKE) clean
 	install -m 644 READ_SLB.txt $(DESTDIR)
-	VERSION=`sed -n -e '/VERSION "/s/.*"\(.*\)".*/\1/p' $(SRCDIR)zlib.h | tr -d .`; cd $(DESTDIR)/..; rm -f zlib$${VERSION}.zip; zip -r zlib$${VERSION}.zip `basename $(DESTDIR)`
-	cd $(SRCDIR); VERSION=`sed -n -e '/VERSION "/s/.*"\(.*\)".*/\1/p' zlib.h`; git archive --prefix=zlib-$${VERSION}-slb/ HEAD | bzip2 > $(DESTDIR)/../zlib-$${VERSION}-slb.tar.bz2
+	VERSION=`sed -n -e '/VERSION "/s/.*"\(.*\)".*/\1/p' $(top_srcdir)zlib.h | tr -d .`; cd $(DESTDIR)/..; rm -f zlib$${VERSION}.zip; zip -r zlib$${VERSION}.zip `basename $(DESTDIR)`
+	cd $(top_srcdir); VERSION=`sed -n -e '/VERSION "/s/.*"\(.*\)".*/\1/p' zlib.h`; git archive --prefix=zlib-$${VERSION}-slb/ HEAD | bzip2 > $(DESTDIR)/../zlib-$${VERSION}-slb.tar.bz2
 
 mostlyclean: clean
 clean:
 	rm -f *.o *.lo *~ zlib.pc \
-	   $(GEN_IMP_OBJS:.o=.c) \
+	   $(GEN_IMP_SRCS) \
 	   example$(EXE) minigzip$(EXE) examplesh$(EXE) minigzipsh$(EXE) \
 	   example64$(EXE) minigzip64$(EXE) infcover$(EXE) \
-	   $(STATICLIB) $(IMPORTLIB) $(SHAREDTARGET) $(SHAREDLIBV) $(SHAREDLIBV) $(SHAREDLIBM) \
+	   $(STATICLIB) $(IMPORTLIB) $(SHAREDTARGET) $(SHAREDLIBV) $(SHAREDLIBM) \
 	   libz.* foo.gz so_locations \
-	   maketree contrib/infback9/*.o
+	   maketree contrib/infback9/*.o \
+	   .genimpsources
 	rm -f *.gcda *.gcno *.gcov
 	rm -f contrib/infback9/*.gcda contrib/infback9/*.gcno contrib/infback9/*.gcov
 
 maintainer-clean: distclean
 distclean: clean zconf docs
-	rm -f Makefile zlib.pc configure.log
+	rm -f zlib.pc configure.log
 	-@rm -f .DS_Store
-	@if [ -f Makefile.in ]; then \
-	printf 'all:\n\t-@echo "Please use ./configure first.  Thank you."\n' > Makefile ; \
-	printf '\ndistclean:\n\tmake -f Makefile.in distclean\n' >> Makefile ; \
-	touch -r $(SRCDIR)Makefile.in Makefile ; fi
 	@if [ ! -f zlib.3 ]; then rm -f zlib.3.pdf ; fi
 	rm -f zlibver.h
 
 tags:
-	etags $(SRCDIR)*.[ch]
+	etags $(top_srcdir)*.[ch]
 
 headerpc.s: header.S exports.h symbols.h zlibver.h Makefile
 	$(CPP) $(CPPFLAGS) -U__USER_LABEL_PREFIX__ -D__USER_LABEL_PREFIX__= $< | sed -e 's/;/\n /g' -e 's/%//g' -e 's/jbra/jmp/' -e 's/SHAREDLIB/"$(SHAREDLIB)"/' > $@
-
-zlib.o zlib.lo: \
-	zlib.c \
-	$(SRCDIR)zutil.h \
-	$(SRCDIR)zlib.h \
-	$(SRCDIR)zconf.h \
-	$(SRCDIR)gzguts.h \
-	$(SRCDIR)crc32.h \
-	$(SRCDIR)inftrees.h \
-	$(SRCDIR)inflate.h \
-	$(SRCDIR)inffast.h \
-	$(SRCDIR)inffixed.h \
-	$(SRCDIR)adler32.c \
-	$(SRCDIR)crc32.c \
-	$(SRCDIR)deflate.c \
-	$(SRCDIR)infback.c \
-	$(SRCDIR)inffast.c \
-	$(SRCDIR)inflate.c \
-	$(SRCDIR)inftrees.c \
-	$(SRCDIR)trees.c \
-	$(SRCDIR)zutil.c \
-	$(SRCDIR)compress.c \
-	$(SRCDIR)uncompr.c \
-	$(SRCDIR)gzclose.c \
-	$(SRCDIR)gzlib.c \
-	$(SRCDIR)gzread.c \
-	$(SRCDIR)gzwrite.c \
-	$(SRCDIR)contrib/minizip/ioapi.c \
-	$(SRCDIR)contrib/minizip/zip.c \
-	$(SRCDIR)contrib/minizip/unzip.c \
-	$(SRCDIR)contrib/minizip/iowin32.c \
-	$(empty)
 
 zlibinit.lo: exports.h zlibslb.h zlibstr.h
 header.lo: exports.h symbols.h zlibver.h

@@ -1,7 +1,7 @@
  .text
  .dc.l 0x70004afc
  .dc.l _slbname
- .dc.l 0x12c0
+ .dc.l 0x1300
  .dc.l 0
  .dc.l zlib_init
  .dc.l zlib_exit
