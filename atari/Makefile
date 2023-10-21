@@ -26,6 +26,11 @@ LDFLAGS=
 TEST_LDFLAGS=-L. $(STATICLIB)
 LDSHARED=$(CC) -s -nostartfiles -Wl,--mprg-flags,0x0f
 
+ELF := $(strip $(shell (echo "#ifdef __ELF__"; echo yes; echo "#endif") | $(CC) -E -P -))
+ifeq ($(ELF),yes)
+CFLAGS += -ffunction-sections -fdata-sections
+endif
+
 STATICLIB=libz.a
 SHAREDLIB=zlib.slb
 SHAREDLIBV=$(SHAREDLIB)
@@ -98,6 +103,10 @@ GEN_IMP_SRCS := $(foreach num,$(shell seq 0 199),zimp_$(num).c)
 GEN_IMP_OBJS := $(GEN_IMP_SRCS:.c=.o)
 
 all: static shared all64
+
+echo:
+	@echo ELF=$(ELF)
+	@echo CFLAGS=$(CFLAGS)
 
 IMP_OBJS = zimpptr.o zimpopen.o libclose.o slbload.o slbexec.o $(GEN_IMP_OBJS)
 zimpopen.o libclose.o: zlibstr.h zlibver.h
@@ -225,7 +234,7 @@ zlibslb.lo: $(srcdir)/zlibslb.c
 
 
 $(SHAREDTARGET): $(PIC_OBJS) $(STATICLIB)
-	$(LDSHARED) $(SFLAGS) $(CPPFLAGS) -o $@ $(PIC_OBJS) $(LDSHAREDLIBC) $(LDFLAGS) $(EXTRA_LDFLAGS)
+	$(LDSHARED) $(CFLAGS) $(SFLAGS) $(CPPFLAGS) -o $@ $(PIC_OBJS) $(LDSHAREDLIBC) $(LDFLAGS) $(EXTRA_LDFLAGS)
 	$(CROSS_PREFIX)stripex $@
 
 example$(EXE): example.o $(STATICLIB)
@@ -336,13 +345,57 @@ GFA_OTHER = \
 	gfa/usepkzip.lst \
 	$(empty)
 
+INL_CFLAGS = -nostartfiles -Wl,--oformat=binary -Os -fomit-frame-pointer -Wall 
+
+#
+# Attention: when these need to be recompiled,
+# check that the object file sizes in gfa/zlib.lst match,
+# and that no instructions are used that would be incompatible
+# with coldfire
+#
+gfa/read.inl: gfa/read.S
+	$(CROSS_PREFIX)gcc $(INL_CFLAGS) $< -o $@
+
+gfa/lseek.inl: gfa/lseek.S
+	$(CROSS_PREFIX)gcc $(INL_CFLAGS) $< -o $@
+
+gfa/strcat.inl: gfa/strcat.c
+	$(CROSS_PREFIX)gcc $(INL_CFLAGS) $< -o $@
+
+gfa/strcmp.inl: gfa/strcmp.c
+	$(CROSS_PREFIX)gcc $(INL_CFLAGS) $< -o $@
+
+gfa/strcpy.inl: gfa/strcpy.c
+	$(CROSS_PREFIX)gcc $(INL_CFLAGS) $< -o $@
+
+gfa/strlen.inl: gfa/strlen.c
+	$(CROSS_PREFIX)gcc $(INL_CFLAGS) $< -o $@
+
+gfa/memchr.inl: gfa/memchr.c
+	$(CROSS_PREFIX)gcc $(INL_CFLAGS) $< -o $@
+
+gfa/memcpy.inl: gfa/memcpy.c
+	$(CROSS_PREFIX)gcc $(INL_CFLAGS) $< -o $@
+
+gfa/memset.inl: gfa/memset.c
+	$(CROSS_PREFIX)gcc $(INL_CFLAGS) $< -o $@
+
+gfa/malloc.inl: gfa/malloc.c
+	$(CROSS_PREFIX)gcc $(INL_CFLAGS) $< -o $@
+
+gfa/free.inl: gfa/free.c
+	$(CROSS_PREFIX)gcc $(INL_CFLAGS) $< -o $@
+
+gfa/strerror.inl: gfa/strerror.c
+	$(CROSS_PREFIX)gcc $(INL_CFLAGS) $< -o $@
+
 gfa/minilib.inl: $(GFA_INL)
 	cat $(GFA_INL) > $@
 
 zlib.3.pdf: $(top_srcdir)zlib.3
 	groff -mandoc -f H -T ps $(top_srcdir)zlib.3 | ps2pdf - $@
 
-bindist: gfa/minilib.inl
+bindist: # gfa/minilib.inl
 	$(MAKE) DESTDIR=/tmp/t/zlib PUREC=/windows/c/atari/pc/lib allbindist
 
 allbindist:

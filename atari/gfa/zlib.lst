@@ -28,29 +28,30 @@ FUNCTION slb_zlib_open(slbpath$)                     ! return <> 0 on error
   IF zlib_slb%<=0
     RETURN zlib_slb%
   ENDIF
-  zlib_vernum&=&H12B0
-  zlib_version$="1.2.11"
+  zlib_vernum&=&H1300
+  zlib_version$="1.3"
   zlib_sizeof_stream%=56
   '
   REM #INL minilib%
+  ' Attention: sizes here depend on the generated code
   INLINE minilib%,4368
   func%=minilib%
   strcat%=func%
-  ADD func%,36
+  ADD func%,28
   strcmp%=func%
-  ADD func%,58
+  ADD func%,60
   strcpy%=func%
-  ADD func%,18
+  ADD func%,20
   strlen%=func%
-  ADD func%,24
+  ADD func%,20
   memchr%=func%
-  ADD func%,38
+  ADD func%,40
   memcpy%=func%
   ADD func%,32
   memset%=func%
-  ADD func%,38
+  ADD func%,32
   strerror%=func%
-  ADD func%,4076
+  ADD func%,4088
   malloc%=func%
   ADD func%,24
   free%=func%
@@ -60,7 +61,7 @@ FUNCTION slb_zlib_open(slbpath$)                     ! return <> 0 on error
   zlib_struct%=ADD(zlib_slb%,144)
   LONG{ADD(zlib_struct%,0)}=256                           ! sizeof(zlib_struct)
   LONG{ADD(zlib_struct%,4)}=4                             ! sizeof(int)
-  LONG{ADD(zlib_struct%,8)}=zlib_vernum&                  ! ZLIB_VERNUM: 1.2.11
+  LONG{ADD(zlib_struct%,8)}=zlib_vernum&                  ! ZLIB_VERNUM: 1.3.0
   LONG{ADD(zlib_struct%,12)}=memset%                      ! memset
   LONG{ADD(zlib_struct%,16)}=memcpy%                      ! memcpy
   LONG{ADD(zlib_struct%,20)}=memchr%                      ! memchr

@@ -11,6 +11,13 @@
 
 #define WITH_FUNCNAMES 1
 
+#ifdef __ELF__
+	.section .text.startup
+#endif
+
+_start:
+__start:
+
 	.dc.l	0x70004afc	                    /* magic value (clr.l d0, illegal) */
 	.dc.l	_slbname	                    /* pointer to library's (file)name */
 	.dc.l	ZLIB_VERNUM                     /* version number; should be ZLIB_VERNUM */
