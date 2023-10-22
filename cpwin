@@ -49,6 +49,7 @@ find . \( -type f \) \
 	! -name "*.chm" \
 	! -name "*.pdf" \
 	! -name "*.map" \
+	! -name ".genimpsources" \
 	! -name "zimp_[0-9]*.c" \
 	! -name "Makefile" \
 	! -name "cpwin" \

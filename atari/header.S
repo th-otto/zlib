@@ -9,6 +9,11 @@
 #include "symbols.h"
 #include "zlibver.h"
 
+	.globl C_SYMBOL_NAME(slb_header)
+
+	.globl _start
+	.globl __start
+
 #define WITH_FUNCNAMES 1
 
 #ifdef __ELF__
@@ -18,6 +23,7 @@
 _start:
 __start:
 
+C_SYMBOL_NAME(slb_header):
 	.dc.l	0x70004afc	                    /* magic value (clr.l d0, illegal) */
 	.dc.l	_slbname	                    /* pointer to library's (file)name */
 	.dc.l	ZLIB_VERNUM                     /* version number; should be ZLIB_VERNUM */

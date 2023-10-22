@@ -33,6 +33,7 @@
 #include <mint/osbind.h>
 #include <mint/mintbind.h>
 #include <mint/basepage.h>
+#include <mint/cookie.h>
 #include "slbload.h"
 
 
@@ -70,13 +71,106 @@ typedef struct
 	void __CDECL (*slb_open) (BASEPAGE *);
 	void __CDECL (*slb_close) (BASEPAGE *);
 	const char *const *procnames;
-	long next;
-	long reserved[7];
+	long next; /* used by MetaDOS */
+	BASEPAGE *my_bp; /* used by us */
+	long reserved[6];
 	long num_funcs;
 	/* long funcs_table[]; */
 } SLB_HEADER;
 
+
+#ifndef __mcoldfire__
+#ifdef __GNUC__
+static long asm_invalidate_cache_030(void)
+{
+	__asm__ __volatile__(
+		"\t.dc.w 0x4e7a,2\n"			/* movec	cacr,d0 */
+		"\tori.w	#0x808,%%d0\n"		/* cd/ci bit (clear d/i-cache) */
+		"\t.dc.w 0x4e7b,2\n"			/* movec	d0,cacr */
+	: : : "d0", "cc", "memory");
+	return 0;
+}
+
+
+static long asm_invalidate_cache_040(void)
+{
+	__asm__ __volatile__(
+		"\tnop\n"						/* fix for some broken 040s */
+		"\t.dc.w 0xf4f8\n"				/* cpusha bc; flush to memory */
+		"\t.dc.w 0xf4d8\n"				/* cinva bc; invalidate */
+	: : : "d0", "cc", "memory");
+	return 0;
+}
+#endif
+
+
+#ifdef __PUREC__
+static void asm_invalidate_cache_030_1(void) 0x4e7a;
+static void asm_invalidate_cache_030_2(void) 0x0002;
+static void asm_invalidate_cache_030_3(void) 0x0040;
+static void asm_invalidate_cache_030_4(void) 0x0808;
+static void asm_invalidate_cache_030_5(void) 0x4e7b;
+static void asm_invalidate_cache_030_6(void) 0x0002;
+
+static long asm_invalidate_cache_030(void)
+{
+	asm_invalidate_cache_030_1();
+	asm_invalidate_cache_030_2();
+	asm_invalidate_cache_030_3();
+	asm_invalidate_cache_030_4();
+	asm_invalidate_cache_030_5();
+	asm_invalidate_cache_030_6();
+	return 0;
+}
+
+static void asm_invalidate_cache_040_1(void) 0x4e71;
+static void asm_invalidate_cache_040_2(void) 0xf4f8;
+static void asm_invalidate_cache_040_3(void) 0xf4d8;
+
+static long asm_invalidate_cache_040(void)
+{
+	asm_invalidate_cache_040_1();
+	asm_invalidate_cache_040_2();
+	asm_invalidate_cache_040_3();
+	return 0;
+}
+
+#endif
+
+
+static long get_cpu(void)
+{
+	long *jar;
+
+	jar = (long *)Setexc(0x5a0 / 4, (void (*)(void))-1);
+	if (jar)
+	{
+		while (jar[0] != 0)
+		{
+			if (jar[0] == C__CPU)
+				return jar[1];
+			jar += 2;
+		}
+	}
+	return 0;
+}
+
+
+static void asm_invalidate_cache(void)
+{
+	long cpu;
+
+	cpu = get_cpu();
+	if (cpu >= 40)
+		Supexec(asm_invalidate_cache_040);
+	else if (cpu >= 30)
+		Supexec(asm_invalidate_cache_030);
+}
+#endif
+
+
 #ifndef NO_LOCAL_SLB
+#pragma GCC diagnostic ignored "-Warray-bounds"
 static long localSlbLoad(const char *sharedlib, const char *path, long ver, SLB_HANDLE *slb, SLB_EXEC *slbexec)
 {
 	long *exec_longs;
@@ -161,12 +255,35 @@ static long localSlbLoad(const char *sharedlib, const char *path, long ver, SLB_
 		bp->p_env = 0;
 	}
 
+	/*
+	 * CT60 TOS is broken, and does not always invalidate the cache on Pexec(3,...)
+	 * Older FreeMiNT kernels are broken, too
+	 */
+#ifndef __mcoldfire__
+	asm_invalidate_cache();
+#endif
+
 	/* Test for the new programm-format */
 	exec_longs = (long *) ((char *) bp->p_tbase);
-	if ((exec_longs[0] == 0x283a001aL && exec_longs[1] == 0x4efb48faL) ||
-		(exec_longs[0] == 0x203a001aL && exec_longs[1] == 0x4efb08faL))
+	if ((exec_longs[0] == 0x283a001aL && exec_longs[1] == 0x4efb48faL) ||	/* Original binutils */
+		(exec_longs[0] == 0x203a001aL && exec_longs[1] == 0x4efb08faL))     /* binutils >= 2.18-mint-20080209 */
 	{
 		slbheader = (SLB_HEADER *) ((char *) bp->p_tbase + 228L);
+	} else if ((exec_longs[0] & 0xffffff00L) == 0x203a0000L &&              /* binutils >= 2.41-mintelf */
+		exec_longs[1] == 0x4efb08faUL &&
+		/*
+		 * 40 = (minimum) offset of elf header from start of file
+		 * 24 = offset of e_entry in common header
+		 * 30 = branch offset (sizeof(GEMDOS header) + 2)
+		 */
+		(exec_longs[0] & 0xff) >= (40 + 24 - 30))
+	{
+		long elf_offset;
+		long e_entry;
+		
+		elf_offset = (exec_longs[0] & 0xff);
+		e_entry = *((long *)((char *)bp->p_tbase + elf_offset + 2));
+		slbheader = (SLB_HEADER *) ((char *) bp->p_tbase + e_entry);
 	} else
 	{
 		slbheader = (SLB_HEADER *) (bp->p_tbase);
@@ -189,6 +306,8 @@ static long localSlbLoad(const char *sharedlib, const char *path, long ver, SLB_
 		file[127] = 0;
 	strcpy(bp->p_cmdlin, file);
 
+	slbheader->my_bp = bp;
+
 	slbheader->slb_init();
 	slbheader->slb_open(_BasPag);
 
@@ -196,13 +315,15 @@ static long localSlbLoad(const char *sharedlib, const char *path, long ver, SLB_
 	*slbexec = (SLB_EXEC) __slb_local_exec;
 	return E_OK;
 }
+#pragma GCC diagnostic warning "-Warray-bounds"
 
 static long localSlbUnload(SLB_HANDLE slb)
 {
 	((SLB_HEADER *) slb)->slb_close(_BasPag);
 	((SLB_HEADER *) slb)->slb_exit();
 
-	Mfree(slb);
+	Mfree(((SLB_HEADER *) slb)->my_bp);
+
 	return E_OK;
 }
 
