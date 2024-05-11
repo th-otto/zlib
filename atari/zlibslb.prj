@@ -37,3 +37,4 @@ libclose.c
 slbload.c
 slbexec.s
 zimport.c
+slbids.c

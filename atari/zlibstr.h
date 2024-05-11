@@ -14,6 +14,8 @@
 #define __CDECL
 #endif
 
+#include <mint/slb.h>
+
 struct _zlibslb_funcs {
 	/*
 	 * sizeof(this struct), as
@@ -69,8 +71,14 @@ struct _zlibslb_funcs {
 	z_int_t __CDECL (*p_rand)(void);
 	void __CDECL (*p_srand)(uInt seed);
 
+	/*
+	 * new functions added 2023/11/28,
+	 * may not be present in earlier versions
+	 */
+	SLB *__CDECL (*p_slb_get)(long lib);
+
 	/* room for later extensions */
-	void *unused[32];
+	void *unused[31];
 };
 
 long __CDECL zlib_slb_control(long fn, void *arg);

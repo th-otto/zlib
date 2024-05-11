@@ -18,7 +18,7 @@ That process has the disadvantage that
 - the arguments are pushed several times, before the actual function is called,
   producing quite some overhead.
 
-To make it possible to call the actual functions with at least overhead
+To make it possible to call the actual functions with as least overhead
 as possible, without passing in extra parameters, or using several wrappers,
 the functions from the import library do all the magic to push the
 library handle etc, and call the function. The entry point of that function

@@ -1,5 +1,5 @@
 # Makefile for zlib
-# Copyright (C) 1995-2017 Jean-loup Gailly, Mark Adler
+# Copyright (C) 1995-2024 Jean-loup Gailly, Mark Adler
 # For conditions of distribution and use, see copyright notice in zlib.h
 
 # To compile and test, type:
@@ -22,13 +22,13 @@ CFLAGS=-O
 
 SFLAGS=-O
 LDFLAGS=
-TEST_LDFLAGS=$(LDFLAGS) -L. $(STATICLIB)
+TEST_LIBS=-L. $(STATICLIB)
 LDSHARED=$(CC)
 CPP=$(CC) -E
 
 STATICLIB=libz.a
 SHAREDLIB=libz.so
-SHAREDLIBV=libz.so.1.3
+SHAREDLIBV=libz.so.1.3.1
 SHAREDLIBM=libz.so.1
 IMPORTLIB=
 SHAREDLIBPOST='(rm -f $(SHAREDLIB) $(SHAREDLIBM); ln -s $@ $(SHAREDLIB) ; ln -s $@ $(SHAREDLIBM) )'
@@ -347,25 +347,25 @@ placebo $(SHAREDTARGET): $(PIC_OBJS) $(STATICLIB)
 	-@rmdir objs
 
 example$(EXE): example.o $(STATICLIB)
-	$(CC) $(CFLAGS) $(EXTRA_CFLAGS) -o $@ $< $(TEST_LDFLAGS) $(EXTRA_LDFLAGS)
+	$(CC) $(CFLAGS) $(EXTRA_CFLAGS) $(LDFLAGS) -o $@ $< $(TEST_LIBS) $(EXTRA_LDFLAGS)
 
 minigzip$(EXE): minigzip.o $(STATICLIB)
-	$(CC) $(CFLAGS) $(EXTRA_CFLAGS) -o $@ $< $(TEST_LDFLAGS) $(EXTRA_LDFLAGS)
+	$(CC) $(CFLAGS) $(EXTRA_CFLAGS) $(LDFLAGS) -o $@ $< $(TEST_LIBS) $(EXTRA_LDFLAGS)
 
 inflate$(EXE): miniinflate.o $(STATICLIB)
-	$(CC) $(CFLAGS) $(EXTRA_CFLAGS) -o $@ $< $(TEST_LDFLAGS) $(EXTRA_LDFLAGS)
+	$(CC) $(CFLAGS) $(EXTRA_CFLAGS) $(LDFLAGS) -o $@ $< $(TEST_LIBS) $(EXTRA_LDFLAGS)
 
 examplesh$(EXE): example.lo $(SHAREDTARGET)
-	$(CC) $(CFLAGS) $(EXTRA_CFLAGS) -o $@ $< $(LDFLAGS) -L. -lz $(EXTRA_LDFLAGS)
+	$(CC) $(CFLAGS) $(EXTRA_CFLAGS) $(LDFLAGS) -o $@ $< -L. -lz $(EXTRA_LDFLAGS)
 
 minigzipsh$(EXE): minigzip.lo $(SHAREDTARGET)
-	$(CC) $(CFLAGS) $(EXTRA_CFLAGS) -o $@ $< $(LDFLAGS) -L. -lz $(EXTRA_LDFLAGS)
+	$(CC) $(CFLAGS) $(EXTRA_CFLAGS) $(LDFLAGS) -o $@ $< -L. -lz $(EXTRA_LDFLAGS)
 
 example64$(EXE): example64.o $(STATICLIB)
-	$(CC) $(CFLAGS) $(EXTRA_CFLAGS) -o $@ $< $(TEST_LDFLAGS) $(EXTRA_LDFLAGS)
+	$(CC) $(CFLAGS) $(EXTRA_CFLAGS) $(LDFLAGS) -o $@ $< $(TEST_LIBS) $(EXTRA_LDFLAGS)
 
 minigzip64$(EXE): minigzip64.o $(STATICLIB)
-	$(CC) $(CFLAGS) $(EXTRA_CFLAGS) -o $@ $< $(TEST_LDFLAGS) $(EXTRA_LDFLAGS)
+	$(CC) $(CFLAGS) $(EXTRA_CFLAGS) $(LDFLAGS) -o $@ $< $(TEST_LIBS) $(EXTRA_LDFLAGS)
 
 install-libs: $(LIBS)
 	-@if [ ! -d $(DESTDIR)$(exec_prefix)  ]; then mkdir -p $(DESTDIR)$(exec_prefix); fi
@@ -446,7 +446,7 @@ zconf: $(SRCDIR)zconf.h.in
 	cp -p $(SRCDIR)zconf.h.in zconf.h
 
 minizip-test: static
-	cd contrib/minizip && { CFLAGS="$(CFLAGS)" $(MAKE) test ; cd ../.. ; }
+	cd contrib/minizip && { CC="$(CC)" CFLAGS="$(CFLAGS)" $(MAKE) test ; cd ../.. ; }
 
 minizip-clean:
 	cd contrib/minizip && { $(MAKE) clean ; cd ../.. ; }

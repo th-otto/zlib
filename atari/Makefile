@@ -54,13 +54,13 @@ AWK=awk
 srcdir = .
 top_srcdir=../
 
-prefix =/usr
-exec_prefix =${prefix}
-libdir =${exec_prefix}/lib
-bindir =${exec_prefix}/bin
-sharedlibdir =${prefix}/../mint/slb
-includedir =${prefix}/include
-mandir =${prefix}/share/man
+prefix = /usr
+exec_prefix = ${prefix}
+libdir = ${exec_prefix}/lib
+bindir = ${exec_prefix}/bin
+sharedlibdir = ${prefix}/../mint/slb
+includedir = ${prefix}/include
+mandir = ${prefix}/share/man
 man3dir = ${mandir}/man3
 pkgconfigdir = ${libdir}/pkgconfig
 ZINC=
@@ -108,8 +108,8 @@ echo:
 	@echo ELF=$(ELF)
 	@echo CFLAGS=$(CFLAGS)
 
-IMP_OBJS = zimpptr.o zimpopen.o libclose.o slbload.o slbexec.o $(GEN_IMP_OBJS)
-zimpopen.o libclose.o: zlibstr.h zlibver.h
+IMP_OBJS = libptr.o libopen.o libclose.o slbload.o slbexec.o slbids.o $(GEN_IMP_OBJS)
+libopen.o libclose.o: zlibstr.h zlibver.h
 
 static: $(STATICLIB) example$(EXE) minigzip$(EXE)
 
@@ -279,7 +279,7 @@ install: install-libs
 	-@if [ ! -d $(DESTDIR)$(includedir)/slb   ]; then mkdir -p $(DESTDIR)$(includedir)/slb; fi
 	rm -f $(DESTDIR)$(includedir)/zlib.h $(DESTDIR)$(includedir)/zconf.h $(DESTDIR)$(includedir)/slb/zlib.h
 	install -m 644 $(top_srcdir)zlib.h $(top_srcdir)zconf.h $(DESTDIR)$(includedir)
-	install -m 644 slb/zlib.h $(DESTDIR)$(includedir)/slb
+	install -m 644 $(srcdir)/slb/zlib.h $(srcdir)/slb/slbids.h $(DESTDIR)$(includedir)/slb
 
 zlib.pc: Makefile
 	@( \
@@ -418,7 +418,7 @@ allbindist:
 	gzip $(DESTDIR)$(mandir)/*/*
 	install -d $(DESTDIR)/purec/include/slb $(DESTDIR)/purec/lib/000 $(DESTDIR)/purec/lib/020 $(DESTDIR)/purec/bin
 	install -m 644 $(top_srcdir)zlib.h $(top_srcdir)zconf.h $(DESTDIR)/purec/include
-	install -m 644 slb/zlib.h $(DESTDIR)/purec/include/slb
+	install -m 644 $(srcdir)/slb/zlib.h $(srcdir)/slb/slbids.h $(DESTDIR)/purec/include/slb
 	cd $(DESTDIR)/purec/include && cr2nl -R -d .
 	install -m 644 $(PUREC)/000/zlib.lib $(PUREC)/000/zlibslb.lib $(DESTDIR)/purec/lib/000
 	install -m 644 $(PUREC)/020/zlib.lib $(PUREC)/020/zlibslb.lib $(DESTDIR)/purec/lib/020

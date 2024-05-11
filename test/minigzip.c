@@ -167,16 +167,9 @@ typedef struct gzFile_s
 	z_stream strm;
 } *gzFile;
 
-gzFile gzopen(const char *, const char *);
-gzFile gzdopen(z_int_t, const char *);
-gzFile gz_open(const char *, z_int_t, const char *);
-z_int_t gzwrite(gzFile, const void *, uInt);
-z_int_t gzread(gzFile, void *, uInt);
-z_int_t gzclose(gzFile);
-const char *gzerror(gzFile, z_int_t *);
 
 
-gzFile gz_open(const char *path, z_int_t fd, const char *mode)
+static gzFile gz_open(const char *path, z_int_t fd, const char *mode)
 {
 	gzFile gz;
 	int ret;
@@ -215,7 +208,7 @@ gzFile gz_open(const char *path, z_int_t fd, const char *mode)
 }
 
 
-gzFile gzopen(const char *path, const char *mode)
+static gzFile gzopen(const char *path, const char *mode)
 {
 	return gz_open(path, -1, mode);
 }
@@ -225,7 +218,7 @@ gzFile gzdopen(z_int_t fd, const char *mode)
 	return gz_open(NULL, fd, mode);
 }
 
-z_int_t gzwrite(gzFile gz, const void *buf, uInt len)
+static z_int_t gzwrite(gzFile gz, const void *buf, uInt len)
 {
 	z_stream *strm;
 	unsigned char out[BUFLEN];
@@ -246,7 +239,7 @@ z_int_t gzwrite(gzFile gz, const void *buf, uInt len)
 }
 
 
-z_int_t gzread(gzFile gz, void *buf, uInt len)
+static z_int_t gzread(gzFile gz, void *buf, uInt len)
 {
 	int ret;
 	unsigned got;
@@ -281,7 +274,7 @@ z_int_t gzread(gzFile gz, void *buf, uInt len)
 }
 
 
-z_int_t gzclose(gzFile gz)
+static z_int_t gzclose(gzFile gz)
 {
 	z_stream *strm;
 	unsigned char out[BUFLEN];
@@ -311,7 +304,7 @@ z_int_t gzclose(gzFile gz)
 }
 
 
-const char *gzerror(gzFile gz, z_int_t *err)
+static const char *gzerror(gzFile gz, z_int_t *err)
 {
 	*err = gz->err;
 	return gz->msg;
@@ -334,7 +327,7 @@ static void error(const char *msg)
 #ifdef USE_MMAP /* MMAP version, Miguel Albrecht <malbrech@eso.org> */
 
 /* Try compressing the input file at once using mmap. Return Z_OK if
- * if success, Z_ERRNO otherwise.
+ * success, Z_ERRNO otherwise.
  */
 static int gz_compress_mmap(FILE *in, gzFile out)
 {

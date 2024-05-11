@@ -14,6 +14,7 @@
 #include <errno.h>
 #include <mint/cookie.h>
 #include <mint/mintbind.h>
+#include <slb/slbids.h>
 #include "zlibstr.h"
 #include "slbload.h"
 
@@ -325,24 +326,31 @@ static z_int_t __CDECL get_errno(void)
 #endif
 
 
+static SLB *__CDECL callback_slb_get(long lib)
+{
+	switch ((int) lib)
+	{
+	case LIB_Z:
+		return slb_zlib_get();
+	}
+	return NULL;
+}
+
+
 long slb_zlib_open(const char *slbpath)
 {
 	long ret;
 	unsigned long flags;
 	long cpu;
+	SLB *zlib;
 	
-	SLB *zlib = slb_zlib_get();
-	
-	if (!zlib)
-		return -EBADF;
-	if (zlib->handle)
-		return 0;
-
 	zlibslb_funcs.struct_size = sizeof(zlibslb_funcs);
 	zlibslb_funcs.int_size = sizeof(z_int_t);
-	if (zlibslb_funcs.int_size != sizeof(long))
-		return -EINVAL;
 	zlibslb_funcs.zlib_vernum = ZLIB_VERNUM;
+
+	if ((zlibslb_funcs.p_slb_get = p_slb_get) == NULL)
+		zlibslb_funcs.p_slb_get = callback_slb_get;
+
 	S(memset);
 	S(memcpy);
 	S(memchr);
@@ -374,6 +382,12 @@ long slb_zlib_open(const char *slbpath)
 	S(srand);
 #undef S
 	
+	zlib = zlibslb_funcs.p_slb_get(LIB_Z);
+	if (!zlib)
+		return -EBADF;
+	if (zlib->handle)
+		return 0;
+
 	ret = slb_load(ZLIB_SHAREDLIB_NAME, slbpath, ZLIB_VERNUM, &zlib->handle, &zlib->exec);
 	if (ret < 0)
 		return ret;
