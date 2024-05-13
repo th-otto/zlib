@@ -401,10 +401,20 @@
 #  endif
 #endif
 
-#if defined(ZLIB_SLB) && (defined(__PUREC__) || defined(__AHCC__))
+#if defined(ZLIB_SLB)
+/*
+ * entry points of the import library need
+ * all parameters on stack
+ */
+#if defined(__PUREC__) || defined(__AHCC__)
 #  define ZEXPORT cdecl
 #  define ZEXPORTVA cdecl
 #  define ZCALLBACK cdecl
+#elif defined(__GNUC__) && defined(__FASTCALL__)
+#  define ZEXPORT __attribute__((__cdecl__))
+#  define ZEXPORTVA __attribute__((__cdecl__))
+#  define ZCALLBACK __attribute__((__cdecl__))
+#endif
 #endif
 
 

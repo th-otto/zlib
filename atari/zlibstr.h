@@ -11,7 +11,11 @@
 #define __ZLIBSTRUCT_H__ 1
 
 #ifndef __CDECL
+#ifdef __FASTCALL__
+#define __CDECL __attribute__((__cdecl__))
+#else
 #define __CDECL
+#endif
 #endif
 
 #include <mint/slb.h>

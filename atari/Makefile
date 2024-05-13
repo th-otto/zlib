@@ -27,6 +27,7 @@ TEST_LDFLAGS=-L. $(STATICLIB)
 LDSHARED=$(CC) -s -nostartfiles -Wl,--mprg-flags,0x0f
 
 ELF := $(strip $(shell (echo "#ifdef __ELF__"; echo yes; echo "#endif") | $(CC) -E -P -))
+BUILD_FAST=$(shell if $(CC) -mfastcall -E - < /dev/null >/dev/null 2>&1; then echo yes; else echo no; fi)
 ifeq ($(ELF),yes)
 CFLAGS += -ffunction-sections -fdata-sections
 endif
@@ -399,6 +400,20 @@ bindist: # gfa/minilib.inl
 	$(MAKE) DESTDIR=/tmp/t/zlib PUREC=/windows/c/atari/pc/lib allbindist
 
 allbindist:
+ifeq ($(BUILD_FAST),yes)
+	$(MAKE) clean
+	$(MAKE) -j8 CPU_CFLAGS="-m68020-60 -mfastcall"
+	$(MAKE) libdir="$(libdir)/m68020-60/mfastcall" sharedlibdir=$(sharedlibdir)/020 install-libs
+	rm -rf $(DESTDIR)$(libdir)/m68020-60/mfastcall/pkgconfig
+	$(MAKE) clean
+	$(MAKE) -j8 CPU_CFLAGS="-mcpu=5475 -mfastcall"
+	$(MAKE) libdir="$(libdir)/m5475/mfastcall" sharedlibdir=$(sharedlibdir)/v4e install-libs
+	rm -rf $(DESTDIR)$(libdir)/m5475/mfastcall/pkgconfig
+	$(MAKE) clean
+	$(MAKE) -j8 CPU_CFLAGS="-m68000 -mfastcall"
+	$(MAKE) libdir="$(libdir)/mfastcall" sharedlibdir=$(sharedlibdir)/000 install-libs
+	rm -rf $(DESTDIR)$(libdir)/mfastcall/pkgconfig
+endif
 	$(MAKE) clean
 	$(MAKE) -j8 CPU_CFLAGS="-m68020-60"
 	$(MAKE) libdir="$(libdir)/m68020-60" sharedlibdir=$(sharedlibdir)/020 install
